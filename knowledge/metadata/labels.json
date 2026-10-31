@@ -1,0 +1,123 @@
+{
+  "dog.md": {
+    "title": "Domestic Dog (*Canis lupus familiaris*)",
+    "knowledge_filename": "dog.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "dog",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "hyena.md": {
+    "title": "Hyena (Hyaenidae)",
+    "knowledge_filename": "hyena.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "hyena",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "fox.md": {
+    "title": "Red Fox (*Vulpes vulpes*)",
+    "knowledge_filename": "fox.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "fox",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "dingo.md": {
+    "title": "Dingo (*Canis lupus dingo*)",
+    "knowledge_filename": "dingo.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "dingo",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "wolf.md": {
+    "title": "Gray Wolf (*Canis lupus*)",
+    "knowledge_filename": "wolf.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "wolf",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "bear.md": {
+    "title": "Bear (Ursidae)",
+    "knowledge_filename": "bear.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "bear",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "koala.md": {
+    "title": "Koala (*Phascolarctos cinereus*)",
+    "knowledge_filename": "koala.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "koala",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "raccoon.md": {
+    "title": "Raccoon (*Procyon lotor*)",
+    "knowledge_filename": "raccoon.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "raccoon",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "coyote.md": {
+    "title": "Coyote (*Canis latrans*)",
+    "knowledge_filename": "coyote.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "coyote",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "red_panda.md": {
+    "title": "Red Panda (*Ailurus fulgens*)",
+    "knowledge_filename": "red_panda.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "red panda",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  },
+  "cat.md": {
+    "title": "Domestic Cat (*Felis catus*)",
+    "knowledge_filename": "cat.md",
+    "source": "knowledge/*.md files authored for Doggo RAG evaluation",
+    "species": null,
+    "primary_common_name": "cat",
+    "description": "",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Content authored for Doggo RAG evaluation; factual content drawn from general biological knowledge."
+  }
+}
