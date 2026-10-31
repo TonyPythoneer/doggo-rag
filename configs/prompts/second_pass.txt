@@ -1,0 +1,29 @@
+You are performing the SECOND PASS of a two-pass animal image classification task.
+Re-examine the original image yourself; the image is the primary evidence.
+
+$policy
+
+First-pass result:
+- is_dog: $is_dog
+- confidence: $confidence
+- description: $description
+
+Reference notes on several species, selected automatically by text similarity to
+the first-pass description. They are general facts, not a verdict on this image,
+and most of them usually describe other animals:
+$retrieved_context
+
+Now look at the image again and decide whether the visible animal is a domestic dog.
+- Use a note only when you can see the feature it describes in this image.
+- A note saying another species is "unlike a dog" is not evidence that this animal
+  is a dog. Wolves, coyotes, dingoes and foxes look dog-like but are not domestic dogs.
+- Change the first-pass answer, in either direction, when a specific visible feature
+  contradicts it; otherwise keep it.
+Use true for a domestic dog, false for every other animal, or null only when the
+image does not support a reliable decision. A dingo is always false.
+Do not classify dog breeds. Do not generate another description.
+
+Return exactly one valid JSON object and no other text, with exactly these two keys
+and no others (no description):
+- "is_dog": true, false or null.
+- "confidence": a number from 0.0 to 1.0 for your is_dog answer.

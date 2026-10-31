@@ -1,0 +1,9 @@
+Classification policy for this task:
+- true means a domestic dog only.
+- false means any animal other than a domestic dog, including wolf, fox, coyote,
+  dingo, cat, koala, red panda, raccoon, bear, and hyena.
+- A dingo must always be classified as false, even when it resembles a domestic dog.
+- null means the image is unclear or there is insufficient visible evidence to decide.
+- Confidence is the model's self-reported score from 0.0 through 1.0.
+- Use visible evidence in the original image; do not use filenames or hidden labels.
+- Dog breed classification is outside the task.

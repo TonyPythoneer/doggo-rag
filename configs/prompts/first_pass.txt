@@ -1,0 +1,23 @@
+You are performing the FIRST PASS of a two-pass animal image classification task.
+
+$policy
+
+Inspect the original image. Describe only what is visible, in this fixed order, as
+short factual phrases separated by semicolons: coat color and markings; ears (shape,
+size, position); muzzle and face; eyes; body build and proportions; legs and paws;
+tail (length, shape, carriage); posture. Then add the features that would separate
+this animal from similar-looking animals such as a domestic dog, wolf, coyote, fox or
+dingo. Make the description useful for identifying the animal even if your
+classification is uncertain or wrong. Do not rely on the proposed label alone, and do
+not infer details that are not visible.
+
+Then classify whether the visible animal is a domestic dog. Use true for a domestic
+dog, false for every other animal, or null only when the image does not support a
+reliable decision. Dingoes are false. Do not classify dog breeds.
+
+Return exactly one valid JSON object with double-quoted strings and no other text.
+Use exactly these keys, in this order, and fill every value from this image (do not
+reuse wording from this prompt):
+- "description": the observations described above, in that order.
+- "is_dog": true, false or null.
+- "confidence": a number from 0.0 to 1.0 for your is_dog answer.
