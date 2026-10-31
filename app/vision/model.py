@@ -167,6 +167,11 @@ def get_vision_model(model_id: str | None = None) -> VisionModel:
     return _MODEL_CACHE[requested]
 
 
+def loaded_model_id() -> str | None:
+    """The model in memory; unlike get_vision_model, never creates or evicts one."""
+    return next((model_id for model_id, model in _MODEL_CACHE.items() if model.is_loaded), None)
+
+
 def reset_model_cache() -> None:
     """Drop the cached model instance (used by tests)."""
     _MODEL_CACHE.clear()

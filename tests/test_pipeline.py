@@ -143,3 +143,22 @@ def test_concurrent_predictions_run_one_at_a_time(config, tmp_index):
 
     assert peak == 1
     assert [response.status for response in responses] == ["ok"] * 3
+
+
+def test_unknown_model_is_a_setup_error_with_no_step_started(config, fake_vision, tmp_index):
+    response = predict(IMAGE, cfg=config, model=fake_vision, retriever=tmp_index, model_id="nope")
+
+    assert response.status == "error"
+    assert list(response.stage_errors) == ["model_selection"]
+    assert set(response.step_statuses.model_dump().values()) == {"not_started"}
+    assert fake_vision.calls == []
+
+
+def test_step_failure_logs_the_traceback(config, fake_vision, tmp_index, caplog):
+    response = predict(
+        IMAGE, cfg=config, model=fake_vision, retriever=RecordingRetriever(tmp_index, fail=True)
+    )
+
+    assert response.error == "retrieval: retrieval exploded"
+    failure = next(record for record in caplog.records if record.levelname == "ERROR")
+    assert failure.exc_info and "retrieval exploded" in str(failure.exc_info[1])

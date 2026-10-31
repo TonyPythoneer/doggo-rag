@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.api import require_api_key
 from app.api.images import remove_uploaded_image
-from app.config import DEFAULT_MODEL_ID
+from app.config import DEFAULT_MODEL_ID, MODEL_REGISTRY
 from app.pipeline.orchestrator import predict
 from app.pipeline.schemas import PipelineResponse
 
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/v1/pipeline", tags=["pipeline"])
 
 class PredictRequest(BaseModel):
     image: str = Field(min_length=1, description="Dataset image reference or uploaded image token")
-    model_id: Literal["lfm3-vl-2b", "lfm2-vl-450m", "qwen3-vl-2b"] = DEFAULT_MODEL_ID
+    model_id: Literal[*MODEL_REGISTRY] = DEFAULT_MODEL_ID
 
     @field_validator("image")
     @classmethod

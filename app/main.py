@@ -41,7 +41,7 @@ def create_app() -> FastAPI:
     @app.get(f"{API_PREFIX}/health", tags=["health"])
     def health() -> dict:
         from app.rag.retriever import INDEX_FILE
-        from app.vision.model import get_vision_model
+        from app.vision.model import loaded_model_id
 
         cfg = get_config()
         index_dir = cfg.retrieval.resolve_index_dir()
@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
         return {
             "status": "ok",
             "vision_model": cfg.vision.model_id,
-            "vision_model_loaded": get_vision_model().is_loaded,
+            "vision_model_loaded": loaded_model_id() == cfg.vision.model_id,
             "embedding_model": cfg.embedding.model_name,
             "index_ready": index_ready,
         }

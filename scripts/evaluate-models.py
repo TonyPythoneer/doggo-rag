@@ -19,7 +19,8 @@ from app.config import (
     RESULT_SCHEMA_VERSION,
     load_config,
 )
-from app.evaluation import runner
+from app.evaluation import metadata, results, runner
+from app.evaluation.metrics import summarize
 from app.evaluation.report import build_report
 from app.evaluation.verify import SUMMARY_FILE, verify
 
@@ -36,19 +37,19 @@ def start_fresh() -> None:
 
 def consolidate_summary() -> dict:
     """Summarize each model's current-version result file independently."""
-    summary: dict = {"schema_version": runner.RESULT_SCHEMA_VERSION, "experiments": {}}
+    summary: dict = {"schema_version": RESULT_SCHEMA_VERSION, "experiments": {}}
     base = load_config()
     for model_id in MODEL_IDS:
         cfg = base.for_model(model_id)
-        path = runner.result_path(cfg, RESULTS_DIR / model_id)
-        key = runner.experiment_key(cfg)
-        records = [r for r in runner.load_records(path) if r.get("experiment_key") == key]
+        path = results.result_path(cfg, RESULTS_DIR / model_id)
+        key = metadata.experiment_key(cfg)
+        records = [r for r in results.load_records(path) if r.get("experiment_key") == key]
         if not records:
             continue
-        meta = runner.metadata_path(cfg, RESULTS_DIR / model_id)
+        meta = results.metadata_path(cfg, RESULTS_DIR / model_id)
         summary["experiments"][model_id] = {
-            **runner.summarize(records),
-            "dataset_version": runner.dataset_version(cfg),
+            **summarize(records),
+            "dataset_version": metadata.dataset_version(cfg),
             "result_file": str(path.relative_to(ROOT) if path.is_relative_to(ROOT) else path),
             "metadata": json.loads(meta.read_text(encoding="utf-8")) if meta.is_file() else {},
         }

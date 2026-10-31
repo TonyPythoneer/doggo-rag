@@ -347,7 +347,9 @@ def test_protected_endpoints_fail_closed_without_server_key(client, monkeypatch)
 
 
 @pytest.mark.filterwarnings("ignore::PIL.Image.DecompressionBombWarning")
-@pytest.mark.parametrize("limit", ["app.api.images.MAX_UPLOAD_PIXELS", "PIL.Image.MAX_IMAGE_PIXELS"])
+@pytest.mark.parametrize(
+    "limit", ["app.api.images.MAX_UPLOAD_PIXELS", "PIL.Image.MAX_IMAGE_PIXELS"]
+)
 def test_image_upload_rejects_too_many_pixels(image_catalog, monkeypatch, limit):
     # The first limit hits the upload check, the second Pillow's own bomb error.
     monkeypatch.setattr(limit, 100)
@@ -360,3 +362,14 @@ def test_image_upload_rejects_too_many_pixels(image_catalog, monkeypatch, limit)
     )
 
     assert response.status_code == 413
+
+
+def test_health_does_not_evict_the_loaded_model(client):
+    from app.vision import model as vision_model
+
+    loaded = vision_model.get_vision_model("qwen3-vl-2b")
+    try:
+        assert client.get("/api/v1/health").json()["vision_model_loaded"] is False
+        assert vision_model.get_vision_model("qwen3-vl-2b") is loaded
+    finally:
+        vision_model.reset_model_cache()

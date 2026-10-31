@@ -168,3 +168,29 @@ Architectural and methodology decisions that are not obvious from the code.
   indexes built before this change must be rebuilt once. Concurrent API
   requests queue without a timeout. The health endpoint still reports
   `index_ready` from the file's existence only.
+
+## 2026-10-31 — One pipeline result type, evaluation split by reason to change
+
+- **Decision:** `RagStage` is gone. `run_rag` fills and returns the
+  `PipelineResponse` that the API, the CLI and the evaluation checkpoints use;
+  `error` and `retrieved_document_ids` are computed from `stage_errors` and
+  `retrieved_documents` instead of being stored twice. A step failure goes
+  through one rule (`_fail`: that step `failed`, later steps `skipped`) and is
+  logged with its traceback. `app/evaluation` is split into `metadata.py`
+  (what identifies an experiment), `results.py` (result files), `metrics.py`
+  (now also `summarize`) and `runner.py` (the run loop). The API's `model_id`
+  choices come from `MODEL_REGISTRY`. `/health` reads the model cache without
+  changing it.
+- **Why:** A simplicity review found two near-identical result types copied
+  field by field, the same failure bookkeeping three times without tracebacks,
+  a 300-line runner with four reasons to change, and model IDs listed in both
+  the config and the API. `/health` called `get_vision_model()`, which evicted
+  a loaded non-default model outside the inference lock.
+- **Consequences:** The response and record formats are unchanged, except that
+  a setup failure's `error` now starts with its step (`image: …`) like every
+  other error, and a First Pass/Second Pass validation message names the step
+  as `first_pass`/`second_pass`. Concurrency policy: one pipeline at a time for
+  every model; requests for other models wait; a model switch releases the
+  previous instance before the new one loads (whether MLX hands that memory
+  back at once is not verified). The frontend and `report.py` still keep their
+  own model display names.

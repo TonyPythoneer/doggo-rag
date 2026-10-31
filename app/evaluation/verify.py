@@ -7,8 +7,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from app.config import MODEL_REGISTRY
-from app.evaluation.runner import RESULT_SCHEMA_VERSION
+from app.config import MODEL_REGISTRY, RESULT_SCHEMA_VERSION
 
 SUMMARY_FILE = f"{RESULT_SCHEMA_VERSION}-summary.json"
 

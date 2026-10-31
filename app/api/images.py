@@ -122,7 +122,7 @@ async def upload_image(file: Annotated[UploadFile, File()]) -> UploadResponse:
         with Image.open(BytesIO(content)) as image:
             image_format = image.format
             if image.width * image.height > MAX_UPLOAD_PIXELS:  # Pillow only warns up to 2x
-                raise Image.DecompressionBombError(f"{image.size} exceeds {MAX_UPLOAD_PIXELS} pixels")
+                raise Image.DecompressionBombError(f"{image.size} is over {MAX_UPLOAD_PIXELS} px")
             image.verify()
     except Image.DecompressionBombError as exc:
         raise HTTPException(status_code=413, detail="Image dimensions are too large") from exc

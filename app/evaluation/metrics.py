@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 
 def _safe_div(numerator: float, denominator: float) -> float:
@@ -81,3 +81,46 @@ def paired_classification_metrics(
         ),
         "transitions": transitions,
     }
+
+
+def _mean_seconds(records: list[dict], key: str) -> dict:
+    values = [
+        r["timings"][key]
+        for r in records
+        if isinstance(r.get("timings", {}).get(key), (int, float))
+    ]
+    return {
+        "count": len(values),
+        "mean_seconds": round(sum(values) / len(values), 4) if values else None,
+    }
+
+
+def summarize(records: list[dict]) -> dict:
+    """Score both passes on the common cohort of images where both passes succeeded."""
+    paired = [
+        record
+        for record in records
+        if record.get("status") == "ok" and record.get("first_pass") and record.get("second_pass")
+    ]
+    failed = [record for record in records if record.get("status") != "ok"]
+    metrics: dict = {
+        "images": len(records),
+        "paired_scored": len(paired),
+        "failed": len(failed),
+        "failed_images": [record["image_id"] for record in failed],
+        "stage_failures": dict(
+            Counter(stage for record in failed for stage in record.get("stage_errors") or {})
+        ),
+        "inference_time": {
+            stage: _mean_seconds(records, f"{stage}_s")
+            for stage in ("first_pass", "retrieval", "second_pass")
+        },
+    }
+    if paired:
+        metrics["comparison"] = paired_classification_metrics(
+            [record["ground_truth_is_dog"] for record in paired],
+            [record["first_pass"]["is_dog"] for record in paired],
+            [record["second_pass"]["is_dog"] for record in paired],
+            [record["species"] for record in paired],
+        )
+    return metrics

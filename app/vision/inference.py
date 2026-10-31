@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import time
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from app.config import AppConfig, get_config
 from app.vision import prompts
@@ -22,7 +22,6 @@ class VisionParseError(ValueError):
     """The model did not return the required structured JSON."""
 
 
-# --------------------------------------------------------------------- parsing
 def extract_json_object(text: str) -> dict:
     """Extract the first decodable JSON object from model output."""
     cleaned = text.strip()
@@ -43,19 +42,26 @@ def extract_json_object(text: str) -> dict:
     raise VisionParseError(f"No JSON object found in model output: {text[:200]!r}")
 
 
-# ------------------------------------------------------------------- prompting
-def _run(
+def _run_pass[Result: BaseModel](
     model: VisionModel,
     image: str,
+    prompt_name: str,
     prompt: str,
     max_tokens: int,
-) -> tuple[str, float]:
+    schema: type[Result],
+) -> tuple[Result, VisionUsage, str]:
+    """Generate, then parse and validate; malformed output raises instead of being guessed."""
     started = time.perf_counter()
     text = model.generate(image, prompt, max_tokens)
-    return text, time.perf_counter() - started
+    latency = time.perf_counter() - started
+    raw = extract_json_object(text)
+    try:
+        result = schema.model_validate(raw)
+    except ValidationError as exc:
+        raise VisionParseError(f"{prompt_name} output failed validation: {raw}") from exc
+    return result, model.usage(prompt_name, latency), text
 
 
-# ------------------------------------------------------------------- passes
 def run_first_pass(
     image: str,
     cfg: AppConfig | None = None,
@@ -64,13 +70,9 @@ def run_first_pass(
     cfg = cfg or get_config()
     model = model or get_vision_model(cfg.vision.model_id)
     prompt = prompts.render(cfg, "first_pass")
-    text, latency = _run(model, image, prompt, cfg.vision.max_tokens_first_pass)
-    raw = extract_json_object(text)
-    try:
-        result = FirstPassResult.model_validate(raw)
-    except ValidationError as exc:
-        raise VisionParseError(f"First pass output failed validation: {raw}") from exc
-    return result, model.usage("first_pass", latency), text
+    return _run_pass(
+        model, image, "first_pass", prompt, cfg.vision.max_tokens_first_pass, FirstPassResult
+    )
 
 
 def run_second_pass(
@@ -90,10 +92,6 @@ def run_second_pass(
         description=first.description,
         retrieved_context=retrieved_context,
     )
-    text, latency = _run(model, image, prompt, cfg.vision.max_tokens_second_pass)
-    raw = extract_json_object(text)
-    try:
-        result = SecondPassResult.model_validate(raw)
-    except ValidationError as exc:
-        raise VisionParseError(f"Second pass output failed validation: {raw}") from exc
-    return result, model.usage("second_pass", latency), text
+    return _run_pass(
+        model, image, "second_pass", prompt, cfg.vision.max_tokens_second_pass, SecondPassResult
+    )

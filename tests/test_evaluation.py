@@ -8,6 +8,8 @@ import json
 import pytest
 
 from app.config import ResultsConfig, load_config
+from app.evaluation import metadata, results
+from app.evaluation.metrics import summarize
 from app.pipeline import orchestrator, rag_pipeline
 from tests.conftest import FakeVisionModel
 
@@ -42,7 +44,7 @@ def fakes(monkeypatch, tmp_index):
 def test_run_evaluation_writes_one_paired_record_per_image(eval_cfg, fakes):
     module = _runner()
     summary = module.run_evaluation(limit=3, resume=False, cfg=eval_cfg)
-    records = module.load_records(result_path(eval_cfg))
+    records = results.load_records(result_path(eval_cfg))
 
     assert summary["dataset_size"] == 3
     assert len(records) == 3
@@ -80,7 +82,7 @@ def test_run_evaluation_no_resume_restarts_new_schema_file(eval_cfg, fakes):
     module.run_evaluation(limit=3, resume=False, cfg=eval_cfg)
     module.run_evaluation(limit=2, resume=False, cfg=eval_cfg)
 
-    assert len(module.load_records(result_path(eval_cfg))) == 2
+    assert len(results.load_records(result_path(eval_cfg))) == 2
     assert json.loads(legacy.read_text(encoding="utf-8")) == {"legacy": True}
 
 
@@ -92,7 +94,7 @@ def test_second_pass_error_preserves_first_pass_and_retrieval(eval_cfg, fakes, m
         lambda *args, **kwargs: FakeVisionModel(second={"is_dog": False, "confidence": 2.0}),
     )
     module.run_evaluation(limit=1, resume=False, cfg=eval_cfg)
-    record = module.load_records(result_path(eval_cfg))[0]
+    record = results.load_records(result_path(eval_cfg))[0]
 
     assert record["status"] == "error"
     assert record["first_pass"] is not None
@@ -115,7 +117,7 @@ def test_retrieval_error_preserves_first_pass_and_skips_second_pass(eval_cfg, fa
 
     monkeypatch.setattr(rag_pipeline, "get_retriever", lambda: BrokenRetriever())
     module.run_evaluation(limit=1, resume=False, cfg=eval_cfg)
-    record = module.load_records(result_path(eval_cfg))[0]
+    record = results.load_records(result_path(eval_cfg))[0]
 
     assert record["status"] == "error"
     assert record["first_pass"] is not None
@@ -133,13 +135,13 @@ def test_retrieval_error_preserves_first_pass_and_skips_second_pass(eval_cfg, fa
 def test_checkpoint_records_step_statuses_before_second_pass(eval_cfg, fakes, monkeypatch):
     module = _runner()
     checkpoints: list[dict] = []
-    original = module._write_record
+    original = module.write_record
 
     def spy(path, record):
         checkpoints.append(json.loads(json.dumps(record)))
         original(path, record)
 
-    monkeypatch.setattr(module, "_write_record", spy)
+    monkeypatch.setattr(module, "write_record", spy)
     module.run_evaluation(limit=1, resume=False, cfg=eval_cfg)
 
     in_progress = [record for record in checkpoints if record["status"] == "in_progress"]
@@ -161,7 +163,7 @@ def test_unexpected_pipeline_exception_is_recorded_with_unstarted_steps(
 
     monkeypatch.setattr(module, "predict", explode)
     module.run_evaluation(limit=1, resume=False, cfg=eval_cfg)
-    record = module.load_records(result_path(eval_cfg))[0]
+    record = results.load_records(result_path(eval_cfg))[0]
 
     assert record["status"] == "error"
     assert record["stage_errors"] == {"pipeline": "boom"}
@@ -182,8 +184,8 @@ def test_first_pass_error_is_not_scored_as_false(eval_cfg, fakes, monkeypatch):
         ),
     )
     module.run_evaluation(limit=1, resume=False, cfg=eval_cfg)
-    record = module.load_records(result_path(eval_cfg))[0]
-    metrics = module.summarize([record])
+    record = results.load_records(result_path(eval_cfg))[0]
+    metrics = summarize([record])
 
     assert record["status"] == "error"
     assert record["first_pass"] is None
@@ -200,8 +202,8 @@ def test_first_pass_error_is_not_scored_as_false(eval_cfg, fakes, monkeypatch):
 def test_summarize_uses_common_paired_cohort_and_reports_required_fields(eval_cfg, fakes):
     module = _runner()
     module.run_evaluation(limit=3, resume=False, cfg=eval_cfg)
-    records = module.load_records(result_path(eval_cfg))
-    metrics = module.summarize(records)
+    records = results.load_records(result_path(eval_cfg))
+    metrics = summarize(records)
 
     comparison = metrics["comparison"]
     assert comparison["paired_images"] == 3
@@ -224,7 +226,7 @@ def test_resume_retries_failed_images(eval_cfg, fakes, monkeypatch):
     summary = module.run_evaluation(limit=1, cfg=eval_cfg)
 
     assert summary["written"] == 1
-    assert [r["status"] for r in module.load_records(result_path(eval_cfg))] == ["ok"]
+    assert [r["status"] for r in results.load_records(result_path(eval_cfg))] == ["ok"]
 
 
 def test_resume_refuses_to_mix_results_from_different_settings(eval_cfg, fakes):
@@ -234,34 +236,32 @@ def test_resume_refuses_to_mix_results_from_different_settings(eval_cfg, fakes):
 
     with pytest.raises(module.SettingsChangedError, match="FRESH=1"):
         module.run_evaluation(limit=2, cfg=eval_cfg)
-    assert len(module.load_records(result_path(eval_cfg))) == 1
+    assert len(results.load_records(result_path(eval_cfg))) == 1
 
 
 def test_result_paths_are_isolated_by_model_and_dataset_version(eval_cfg, tmp_path):
-    module = _runner()
-    first_path = module.result_path(eval_cfg)
+    first_path = results.result_path(eval_cfg)
     other_model = eval_cfg.model_copy(deep=True)
     other_model.vision.model_id = "qwen3-vl-2b"
-    assert module.result_path(other_model) != first_path
+    assert results.result_path(other_model) != first_path
 
     changed_dataset = eval_cfg.model_copy(deep=True)
     changed_manifest = tmp_path / "different.csv"
     changed_manifest.write_text("filename,label,species,license,source_url,author\n", encoding="utf-8")
     changed_dataset.dataset.manifest = str(changed_manifest)
-    assert module.result_path(changed_dataset) != first_path
+    assert results.result_path(changed_dataset) != first_path
 
 
 def test_run_evaluation_dogs_samples_dogs_and_keeps_every_non_dog(eval_cfg, fakes):
     module = _runner()
     module.run_evaluation(resume=False, cfg=eval_cfg, dogs=3)
-    records = module.load_records(result_path(eval_cfg))
+    records = results.load_records(result_path(eval_cfg))
 
     assert sum(r["ground_truth_is_dog"] for r in records) == 3
     assert sum(not r["ground_truth_is_dog"] for r in records) == 100
 
 
 def test_dataset_version_changes_when_image_bytes_change(eval_cfg, tmp_path):
-    module = _runner()
     image = tmp_path / "images" / "dog" / "dog_001.jpg"
     image.parent.mkdir(parents=True)
     image.write_bytes(b"original pixels")
@@ -273,15 +273,14 @@ def test_dataset_version_changes_when_image_bytes_change(eval_cfg, tmp_path):
     )
     eval_cfg.dataset.manifest = str(manifest)
     eval_cfg.dataset.images_dir = str(tmp_path / "images")
-    before = module.dataset_version(eval_cfg)
+    before = metadata.dataset_version(eval_cfg)
 
     image.write_bytes(b"edited pixels")
 
-    assert module.dataset_version(eval_cfg) != before
+    assert metadata.dataset_version(eval_cfg) != before
 
 
 def test_revision_is_the_hugging_face_snapshot_commit(tmp_path):
-    module = _runner()
-    assert module._revision(tmp_path / "snapshots" / "0123abcd") == "0123abcd"
-    assert module._revision(tmp_path / "models" / "LFM3-VL-2B-MLX-4bit") is None
-    assert module._revision(None) is None
+    assert metadata._revision(tmp_path / "snapshots" / "0123abcd") == "0123abcd"
+    assert metadata._revision(tmp_path / "models" / "LFM3-VL-2B-MLX-4bit") is None
+    assert metadata._revision(None) is None

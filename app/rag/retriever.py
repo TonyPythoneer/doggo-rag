@@ -36,7 +36,6 @@ class Retriever:
         self._index = None
         self._chunks: list[TextChunk] = []
 
-    # ------------------------------------------------------------- build/load
     def build(self, chunks: list[TextChunk]) -> int:
         if not chunks:
             raise ValueError("Cannot build an index from zero chunks")
@@ -75,7 +74,6 @@ class Retriever:
         self._index, self._chunks = index, chunks
         return self
 
-    # ---------------------------------------------------------------- search
     def search(self, query: str, top_k: int, oversample: int = 3) -> list[RetrievedDocument]:
         if self._index is None:
             self.load()

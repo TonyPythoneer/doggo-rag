@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from app.config import load_config
-from app.evaluation import report, runner
+from app.evaluation import metadata, report, results
 from app.evaluation.verify import verify
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,13 +61,13 @@ def evaluate(tmp_path, monkeypatch):
 
 def _write_pair(root: Path, model_id: str, query: str = "visible animal traits") -> None:
     cfg = load_config().for_model(model_id)
-    path = runner.result_path(cfg, root / model_id)
+    path = results.result_path(cfg, root / model_id)
     path.parent.mkdir(parents=True, exist_ok=True)
-    record = _record("dog/dog_001", model_id, runner.dataset_version(cfg), query)
-    record["experiment_key"] = runner.experiment_key(cfg)
+    record = _record("dog/dog_001", model_id, metadata.dataset_version(cfg), query)
+    record["experiment_key"] = metadata.experiment_key(cfg)
     path.write_text(json.dumps(record) + "\n", encoding="utf-8")
-    runner.metadata_path(cfg, root / model_id).write_text(
-        json.dumps(runner.experiment_metadata(cfg)), encoding="utf-8"
+    results.metadata_path(cfg, root / model_id).write_text(
+        json.dumps(metadata.experiment_metadata(cfg)), encoding="utf-8"
     )
 
 
