@@ -1,0 +1,123 @@
+{#- Same look and wording as the web app (frontend/src/index.css and App.tsx). -#}
+{% macro trend_badge(points) -%}
+{% if points is none -%}
+<span class="badge" data-trend="flat">–</span>
+{%- elif points|abs < 0.05 -%}
+<span class="badge" data-trend="flat">– No change</span>
+{%- else -%}
+<span class="badge" data-trend="{{ 'up' if points > 0 else 'down' }}">{{ '▲' if points > 0 else '▼' }} {{ '%+.1f'|format(points) }} pp {{ 'better' if points > 0 else 'worse' }}</span>
+{%- endif %}
+{%- endmacro %}
+
+{% macro meter(value, second=false) -%}
+<span class="meter{{ ' second' if second }}"><span style="width:{{ 0 if value is none else (value * 100)|round|int }}%"></span></span>
+{%- endmacro %}
+
+{% macro answers_table(first, second, matrices) %}
+<div class="table-scroll"><table>
+  <tr><th></th><th class="num" colspan="3">First Pass said…</th><th class="num" colspan="3">Second Pass said…</th></tr>
+  <tr><th>Photo shows</th>
+  {%- for _ in range(2) %}{% for label in ("Domestic dog", "Not a domestic dog", "Uncertain") %}<th class="num">{{ label }}</th>{% endfor %}{% endfor %}</tr>
+  {% for truth in ("Dog photos", "Other animal photos") %}
+  {%- set row = loop.index0 %}
+  <tr><th>{{ truth }}</th>
+  {%- for matrix in matrices %}{% for value in matrix[row] %}<td class="num">{{ value }}</td>{% endfor %}{% endfor %}</tr>
+  {% endfor %}
+</table></div>
+<p class="muted">Right answers: "Domestic dog" for dog photos, "Not a domestic dog" for every other animal.
+"Uncertain" counts as wrong.</p>
+{% endmacro %}
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOGGO RAG evaluation</title>
+<style>{% include "report.css" %}</style>
+</head>
+<body>
+<header class="header"><div class="wrap">
+  <h1>DOGGO RAG evaluation</h1>
+  <p>Does a second look with retrieved animal facts help each model spot domestic dogs?</p>
+</div></header>
+<main class="wrap">
+  <section class="card">
+    <h2>How to read this</h2>
+    <ol class="howto">
+      <li><strong>First Pass:</strong> the model looks at the photo alone and answers
+        “Domestic dog”, “Not a domestic dog” or “Uncertain”.</li>
+      <li><strong>Second Pass:</strong> the same model looks at the same photo again, this time with
+        its first answer and animal facts found by RAG retrieval.</li>
+      <li>Both passes are scored on the same photos. A run that failed is listed separately and is
+        never counted as a wrong answer. “Uncertain” counts as wrong. Dingoes count as not a dog.</li>
+      <li>A green ▲ means the second look got more answers right; a red ▼ means fewer.
+        “pp” = percentage points.</li>
+    </ol>
+  </section>
+  <div class="grid">
+  {% for m in models %}
+    <section class="card">
+      <h2>{{ m.label }}</h2>
+      <p><span class="big">{{ m.first.accuracy|pct }}</span><span class="arrow">→</span><span class="big">{{ m.second.accuracy|pct }}</span></p>
+      <p class="label">Correct answers: First Pass → Second Pass</p>
+      <p>{{ trend_badge(m.gain) }}</p>
+      <div class="stats">
+        <span>Fixed by the second look</span><b><span class="badge" data-trend="up">{{ m.moves.incorrect_to_correct|fmt }}</span></b>
+        <span>Broken by the second look</span><b><span class="badge" data-trend="down">{{ m.moves.correct_to_incorrect|fmt }}</span></b>
+        <span>Right both times</span><b>{{ m.moves.unchanged_correct|fmt }}</b>
+        <span>Wrong both times</span><b>{{ m.moves.unchanged_incorrect|fmt }}</b>
+        <span>Images scored</span><b>{{ m.comparison.paired_images|default(0) }} of {{ m.experiment.images|default(0) }}</b>
+        <span>Failed runs (not scored)</span><b><span class="badge" data-trend="{{ 'down' if m.experiment.failed else 'flat' }}">{{ m.experiment.failed|default(0) }}</span></b>
+      </div>
+    </section>
+  {% else %}
+    <section class="card"><p>No results yet. Run <code>make eval</code>.</p></section>
+  {% endfor %}
+  </div>
+  {% for m in models %}
+  <section class="card">
+    <div class="section-title"><h2>{{ m.label }}</h2>
+    <p>{{ trend_badge(m.gain) }}</p></div>
+    {% if m.stage_failures %}
+    <p class="callout"><strong>Failed runs</strong> (not scored, never counted as "not a dog").
+      Failed at — {% for stage, count in m.stage_failures %}{{ stage }}: {{ count }}{{ ", " if not loop.last }}{% endfor %}.
+      Images: {% for image in m.experiment.failed_images|default([]) %}<code>{{ image }}</code>{{ ", " if not loop.last }}{% endfor %}</p>
+    {% endif %}
+    {% if not m.comparison %}
+    <p class="muted">No image has both passes completed yet.</p>
+    {% else %}
+    <h3>What it answered</h3>{{ answers_table(m.first, m.second, m.matrices) }}
+    <h3>Correct answers by animal</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Animal</th><th class="num" colspan="2">First Pass correct</th>
+          <th class="num" colspan="2">Second Pass correct</th><th class="num">Change</th></tr>
+      {% for s in m.species %}
+      <tr><th>{{ s.label }}</th>
+        <td class="num">{{ s.before|pct }}</td><td>{{ meter(s.before) }}</td>
+        <td class="num">{{ s.after|pct }}</td><td>{{ meter(s.after, second=true) }}</td>
+        <td class="num">{{ trend_badge(s.change) }}</td></tr>
+      {% endfor %}
+    </table></div>
+    <h3>Dog-detection scores</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Score (dog = positive)</th><th class="num">First Pass</th><th class="num">Second Pass</th></tr>
+      {% for name, hint, key in scores %}
+      <tr><th>{{ name }}<br><span class="muted">{{ hint }}</span></th>
+        <td class="num">{{ m.first[key]|fmt }}</td><td class="num">{{ m.second[key]|fmt }}</td></tr>
+      {% endfor %}
+    </table></div>
+    {% endif %}
+    <h3>Average time per image</h3>
+    <p>{% for label, seconds in m.speed %}<span class="badge" data-trend="flat">{{ label }}: {{ seconds|seconds }}</span> {% endfor %}</p>
+    <details><summary>Run settings</summary><dl>
+      {% for key, value in m.settings %}<dt>{{ key }}</dt><dd><code>{{ value }}</code></dd>
+      {% endfor %}
+    </dl></details>
+  </section>
+  {% endfor %}
+  <p class="muted">Limitation: this compares the whole second look (first answer + retrieved facts)
+  with the first look, so it does not show how much of a change comes from the retrieved facts alone.</p>
+</main>
+</body>
+</html>
