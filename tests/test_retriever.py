@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import json
+import shutil
+
 import pytest
 
-from app.rag.retriever import IndexNotBuiltError, Retriever
+import app.rag.retriever as retriever_module
+from app.config import load_config
+from app.rag.ingestion import build_index
+from app.rag.retriever import IndexNotBuiltError, Retriever, get_retriever
 from tests.conftest import FakeEmbedder
 
 
@@ -53,3 +59,43 @@ def test_search_results_are_traceable(tmp_index):
         assert item.title
         assert item.content
         assert isinstance(item.score, float)
+
+
+def test_load_rejects_chunks_that_do_not_match_the_index(tmp_index):
+    chunks_path = tmp_index.index_dir / "chunks.json"
+    chunks_path.write_text(json.dumps(json.loads(chunks_path.read_text())[:-1]))
+
+    with pytest.raises(IndexNotBuiltError, match="ingest"):
+        Retriever(embedder=FakeEmbedder(), index_dir=tmp_index.index_dir).load()
+
+
+@pytest.fixture()
+def index_cfg(tmp_path, monkeypatch):
+    cfg = load_config()
+    shutil.copytree(cfg.knowledge.resolve_dir(), tmp_path / "knowledge")
+    cfg.knowledge.dir = str(tmp_path / "knowledge")
+    cfg.retrieval.index_dir = str(tmp_path / "index")
+    build_index(cfg, embedder=FakeEmbedder())
+    monkeypatch.setattr(retriever_module, "get_config", lambda: cfg)
+    get_retriever.cache_clear()
+    yield cfg
+    get_retriever.cache_clear()
+
+
+def test_get_retriever_loads_an_index_built_from_current_knowledge(index_cfg):
+    assert get_retriever().index_dir == index_cfg.retrieval.resolve_index_dir()
+
+
+def test_get_retriever_refuses_an_index_from_edited_knowledge(index_cfg):
+    fox = index_cfg.knowledge.resolve_dir() / "fox.md"
+    fox.write_text(fox.read_text(encoding="utf-8") + "\nOne more fact.\n", encoding="utf-8")
+
+    with pytest.raises(IndexNotBuiltError, match="ingest"):
+        get_retriever()
+
+
+def test_get_retriever_refuses_an_index_from_another_embedding_model(index_cfg):
+    index_cfg.embedding.model_name = "another/embedding-model"
+
+    with pytest.raises(IndexNotBuiltError, match="ingest"):
+        get_retriever()

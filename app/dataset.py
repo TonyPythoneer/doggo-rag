@@ -75,7 +75,7 @@ def resolve_image(image: str, cfg: AppConfig | None = None) -> Path:
     )
 
 
-def _manifest_image_path(filename: str, cfg: AppConfig) -> Path:
+def manifest_image_path(filename: str, cfg: AppConfig) -> Path:
     images_dir = cfg.dataset.resolve_images_dir().resolve()
     relative = Path(filename)
     if relative.parts and relative.parts[0] == "images":
@@ -96,7 +96,7 @@ def list_dataset_images(cfg: AppConfig | None = None) -> list[dict[str, str]]:
     images: list[dict[str, str]] = []
     for index, row in enumerate(load_manifest(cfg), start=1):
         try:
-            _manifest_image_path(row.filename, cfg)
+            manifest_image_path(row.filename, cfg)
         except ImageNotFoundError:
             continue
         image_id = f"image-{index:04d}"
@@ -121,7 +121,7 @@ def resolve_dataset_image_id(image_id: str, cfg: AppConfig | None = None) -> Pat
     rows = load_manifest(cfg)
     if index < 1 or index > len(rows):
         raise ImageNotFoundError(f"Dataset image not found: {image_id!r}")
-    return _manifest_image_path(rows[index - 1].filename, cfg)
+    return manifest_image_path(rows[index - 1].filename, cfg)
 
 
 def resolve_image_reference(image: str, cfg: AppConfig | None = None) -> Path:

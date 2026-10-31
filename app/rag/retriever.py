@@ -64,9 +64,15 @@ class Retriever:
                 f"Vector index not found in {self.index_dir}. "
                 "Build it offline with: python -m app.cli ingest"
             )
-        self._index = faiss.read_index(str(index_path))
+        index = faiss.read_index(str(index_path))
         raw = json.loads(chunks_path.read_text(encoding="utf-8"))
-        self._chunks = [TextChunk(**item) for item in raw]
+        chunks = [TextChunk(**item) for item in raw]
+        if index.ntotal != len(chunks):
+            raise IndexNotBuiltError(
+                f"{index_path} holds {index.ntotal} vectors but {chunks_path} lists "
+                f"{len(chunks)} chunks. Rebuild it with: python -m app.cli ingest"
+            )
+        self._index, self._chunks = index, chunks
         return self
 
     # ---------------------------------------------------------------- search
@@ -96,6 +102,21 @@ class Retriever:
 
 @lru_cache(maxsize=1)
 def get_retriever() -> Retriever:
-    """Load (never build) the process-wide retriever: index and embedder load once."""
+    """Load (never build) the process-wide retriever: index and embedder load once.
+
+    Refuses an index built from other knowledge, chunking or embedding settings:
+    only `make eval` rebuilds it, so the CLI and the API could otherwise use a stale one.
+    """
+    from app.rag.ingestion import BUILD_STATS_FILE, build_chunks  # ingestion imports this module
+
     cfg = get_config()
-    return Retriever(Embedder(cfg.embedding), cfg.retrieval.resolve_index_dir()).load()
+    retriever = Retriever(Embedder(cfg.embedding), cfg.retrieval.resolve_index_dir()).load()
+    stats_path = retriever.index_dir / BUILD_STATS_FILE
+    stats = json.loads(stats_path.read_text(encoding="utf-8")) if stats_path.is_file() else {}
+    other_embedding = stats.get("embedding") != cfg.embedding.model_dump()
+    if other_embedding or retriever._chunks != build_chunks(cfg):
+        raise IndexNotBuiltError(
+            f"The vector index in {retriever.index_dir} does not match the current knowledge "
+            "or embedding settings. Rebuild it with: python -m app.cli ingest"
+        )
+    return retriever

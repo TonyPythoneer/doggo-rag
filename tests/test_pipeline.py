@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 from app.pipeline.orchestrator import predict
 from app.pipeline.rag_pipeline import assemble_context
+from tests.conftest import FakeVisionModel
 
 IMAGE = "doggo-dataset/images/non_dog/fox/fox_001.jpg"
 
@@ -113,3 +118,28 @@ def test_missing_image_reports_error(config, fake_vision, tmp_index):
 
 def test_assemble_context_handles_empty():
     assert "no relevant knowledge" in assemble_context([])
+
+
+def test_concurrent_predictions_run_one_at_a_time(config, tmp_index):
+    active = peak = 0
+    guard = threading.Lock()
+
+    class SlowModel(FakeVisionModel):
+        def generate(self, image, prompt, max_tokens):
+            nonlocal active, peak
+            with guard:
+                active += 1
+                peak = max(peak, active)
+            time.sleep(0.02)
+            with guard:
+                active -= 1
+            return super().generate(image, prompt, max_tokens)
+
+    def run(_):
+        return predict(IMAGE, cfg=config, model=SlowModel(), retriever=tmp_index)
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        responses = list(pool.map(run, range(3)))
+
+    assert peak == 1
+    assert [response.status for response in responses] == ["ok"] * 3

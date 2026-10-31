@@ -5,18 +5,34 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import platform
 import random
 from collections import Counter
 from datetime import UTC, datetime
+from importlib import metadata as package_metadata
 from pathlib import Path
 
 from app.config import RESULT_SCHEMA_VERSION, AppConfig, get_config
-from app.dataset import DatasetRow, load_manifest
+from app.dataset import DatasetRow, ImageNotFoundError, load_manifest, manifest_image_path
 from app.evaluation.metrics import paired_classification_metrics
 from app.pipeline.orchestrator import predict
 from app.pipeline.schemas import PipelineResponse, RagStage
+from app.vision.model import resolve_cached_snapshot, resolve_model_source
 
 logger = logging.getLogger(__name__)
+
+# Installed packages whose version can change inference, embeddings or retrieval.
+PACKAGES = (
+    "mlx",
+    "mlx-vlm",
+    "transformers",
+    "torch",
+    "sentence-transformers",
+    "faiss-cpu",
+    "numpy",
+    "pillow",
+    "pydantic",
+)
 
 
 class SettingsChangedError(RuntimeError):
@@ -32,8 +48,30 @@ def _digest(paths: list[Path]) -> str:
 
 
 def dataset_version(cfg: AppConfig) -> str:
-    manifest = cfg.dataset.resolve_manifest()
-    return _digest([manifest]) if manifest.is_file() else "unknown"
+    """Digest of the manifest and every image it lists, so edited pixels change the version."""
+    try:
+        rows = load_manifest(cfg)
+    except FileNotFoundError:  # missing or empty manifest
+        return "unknown"
+    images = []
+    for row in rows:
+        try:
+            images.append(manifest_image_path(row.filename, cfg))
+        except ImageNotFoundError:
+            continue  # a missing image drops its bytes, which still changes the digest
+    return _digest([cfg.dataset.resolve_manifest(), *images])
+
+
+def _revision(source: Path | None) -> str | None:
+    """Hugging Face cache snapshot directories are named after the commit hash."""
+    return source.name if source and source.parent.name == "snapshots" else None
+
+
+def _package_version(name: str) -> str | None:
+    try:
+        return package_metadata.version(name)
+    except package_metadata.PackageNotFoundError:
+        return None
 
 
 def result_path(cfg: AppConfig, output_dir: Path | None = None) -> Path:
@@ -65,17 +103,17 @@ def experiment_metadata(cfg: AppConfig) -> dict:
     vision = cfg.vision
     prompts = [cfg.prompts_dir / f"{name}.txt" for name in ("policy", "first_pass", "second_pass")]
     knowledge = sorted(cfg.knowledge.resolve_dir().glob("*.md"))
-    app_dir = Path(__file__).resolve().parents[1]  # chunking, embedding text and context layout
-    rag_code = [
-        app_dir / "rag" / "chunking.py",
-        app_dir / "rag" / "retriever.py",
-        app_dir / "pipeline" / "rag_pipeline.py",
-    ]
+    # Model call, output parsing, chunking, embedding, retrieval and context layout.
+    app_dir = Path(__file__).resolve().parents[1]
+    code = sorted(
+        path for package in ("rag", "pipeline", "vision") for path in (app_dir / package).glob("*.py")
+    )
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "schema_version": RESULT_SCHEMA_VERSION,
         "vision_model": vision.model_id,
         "vision_repo": vision.model_repo,
+        "vision_revision": _revision(resolve_model_source(vision)),
         "vision_backend": vision.backend,
         "decoding": {
             "temperature": vision.temperature,
@@ -84,7 +122,7 @@ def experiment_metadata(cfg: AppConfig) -> dict:
             "max_tokens_second_pass": vision.max_tokens_second_pass,
         },
         "prompts_sha256": _digest(prompts),
-        "rag_code_sha256": _digest(rag_code),
+        "code_sha256": _digest(code),
         "knowledge_sha256": _digest(knowledge),
         "retrieval": {
             "query_source": "first_pass.description",
@@ -93,9 +131,15 @@ def experiment_metadata(cfg: AppConfig) -> dict:
             "chunk_max_chars": cfg.knowledge.chunk_max_chars,
             "vector_store": "faiss(IndexFlatIP, cosine)",
             "embedding_model": cfg.embedding.model_name,
+            "embedding_revision": _revision(resolve_cached_snapshot(cfg.embedding.model_name)),
         },
         "dataset_manifest": cfg.dataset.manifest,
         "dataset_version": dataset_version(cfg),
+        "environment": {
+            "python": platform.python_version(),
+            "platform": platform.platform(),
+            "packages": {name: _package_version(name) for name in PACKAGES},
+        },
     }
 
 
@@ -169,6 +213,7 @@ def run_evaluation(
             )
     meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
     done = {record["image_id"] for record in records if record.get("status") == "ok"}
+    version = metadata["dataset_version"]  # hashing every image per record would be slow
 
     written = errors = 0
     for row in rows:
@@ -177,22 +222,26 @@ def run_evaluation(
             continue
 
         def checkpoint(stage: RagStage, row: DatasetRow = row) -> None:
-            _write_record(out_path, _record(row, cfg, key, "in_progress", stage, stage.query))
+            record = _record(row, cfg, key, version, "in_progress", stage, stage.query)
+            _write_record(out_path, record)
 
         try:
             response = predict(row.filename, cfg=cfg, on_stage=checkpoint)
         except Exception as exc:
             logger.exception("evaluation failed unexpectedly for %s", image_id)
-            record = _record(row, cfg, key, "error", RagStage(stage_errors={"pipeline": str(exc)}))
+            failure = RagStage(stage_errors={"pipeline": str(exc)})
+            record = _record(row, cfg, key, version, "error", failure)
         else:
-            record = _record(row, cfg, key, response.status, response, response.retrieval_query)
+            record = _record(
+                row, cfg, key, version, response.status, response, response.retrieval_query
+            )
         _write_record(out_path, record)
         written += 1
         errors += record["status"] != "ok"
 
     return {
         "model_id": cfg.vision.model_id,
-        "dataset_version": dataset_version(cfg),
+        "dataset_version": version,
         "dataset_size": len(rows),
         "written": written,
         "errors": errors,
@@ -205,6 +254,7 @@ def _record(
     row: DatasetRow,
     cfg: AppConfig,
     key: str,
+    version: str,
     status: str,
     result: RagStage | PipelineResponse,
     query: str | None = None,
@@ -219,7 +269,7 @@ def _record(
         "species": row.species,
         "model_id": cfg.vision.model_id,
         "model_repo": cfg.vision.model_repo,
-        "dataset_version": dataset_version(cfg),
+        "dataset_version": version,
         "run_at": datetime.now(UTC).isoformat(),
         "status": status,
         "first_pass": result.first_pass.model_dump(mode="json") if result.first_pass else None,

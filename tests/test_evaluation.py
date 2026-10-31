@@ -258,3 +258,30 @@ def test_run_evaluation_dogs_samples_dogs_and_keeps_every_non_dog(eval_cfg, fake
 
     assert sum(r["ground_truth_is_dog"] for r in records) == 3
     assert sum(not r["ground_truth_is_dog"] for r in records) == 100
+
+
+def test_dataset_version_changes_when_image_bytes_change(eval_cfg, tmp_path):
+    module = _runner()
+    image = tmp_path / "images" / "dog" / "dog_001.jpg"
+    image.parent.mkdir(parents=True)
+    image.write_bytes(b"original pixels")
+    manifest = tmp_path / "manifest.csv"
+    manifest.write_text(
+        "filename,label,species,license,source_url,author\n"
+        "images/dog/dog_001.jpg,dog,dog,CC0,https://example.org,someone\n",
+        encoding="utf-8",
+    )
+    eval_cfg.dataset.manifest = str(manifest)
+    eval_cfg.dataset.images_dir = str(tmp_path / "images")
+    before = module.dataset_version(eval_cfg)
+
+    image.write_bytes(b"edited pixels")
+
+    assert module.dataset_version(eval_cfg) != before
+
+
+def test_revision_is_the_hugging_face_snapshot_commit(tmp_path):
+    module = _runner()
+    assert module._revision(tmp_path / "snapshots" / "0123abcd") == "0123abcd"
+    assert module._revision(tmp_path / "models" / "LFM3-VL-2B-MLX-4bit") is None
+    assert module._revision(None) is None

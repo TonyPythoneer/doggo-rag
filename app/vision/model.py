@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 
 from app.config import MODEL_REGISTRY as MODEL_SPECS
-from app.config import AppConfig, get_config
+from app.config import AppConfig, VisionConfig, get_config
 from app.vision.schemas import VisionUsage
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,18 @@ def resolve_cached_snapshot(repo: str) -> Path | None:
         return None
 
 
+def resolve_model_source(vision: VisionConfig) -> Path | None:
+    """The checkpoint the loader uses: the local directory, else a complete cached snapshot.
+
+    Never calls the Hub: a missing cache is an explicit error telling the user to
+    download the model themselves.
+    """
+    local = vision.resolve_path()
+    if local.exists():
+        return local
+    return resolve_cached_snapshot(vision.model_repo) if vision.model_repo else None
+
+
 class VisionModel:
     """Thin wrapper over mlx_vlm with a stable generate() contract."""
 
@@ -57,16 +69,8 @@ class VisionModel:
         if self._model is not None:
             return
         vision = self.config.vision
-        local = vision.resolve_path()
-        # Local checkpoint preferred; otherwise use a *complete cached snapshot*
-        # (local_files_only). Never call the Hub: a missing cache is an explicit
-        # error telling the user to download the model themselves.
-        if local.exists():
-            target = str(local)
-        elif vision.model_repo and (cached := resolve_cached_snapshot(vision.model_repo)):
-            target = str(cached)
-        else:
-            expected = local
+        source = resolve_model_source(vision)
+        if source is None:
             repo_hint = (
                 f" or a complete Hugging Face cache entry for {vision.model_repo!r}"
                 if vision.model_repo
@@ -74,10 +78,11 @@ class VisionModel:
             )
             raise VisionModelError(
                 f"Vision model {vision.model_id!r} is not available locally. "
-                f"Expected a checkpoint at {expected}{repo_hint}. "
+                f"Expected a checkpoint at {vision.resolve_path()}{repo_hint}. "
                 "Run `make download` and retry. "
                 "DOGGO RAG never downloads models automatically during inference."
             )
+        target = str(source)
         try:
             from mlx_vlm import load
         except ImportError as exc:  # pragma: no cover - environment guard

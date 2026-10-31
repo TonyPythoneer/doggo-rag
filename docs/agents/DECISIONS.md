@@ -132,3 +132,39 @@ Architectural and methodology decisions that are not obvious from the code.
   code hash); rerun with `FRESH=1`. Retrieval behavior with the defaults is
   unchanged. `make` still passes the literal `results` directories to the AI
   log, and the frontend reads `VITE_API_PORT` / `VITE_API_TIMEOUT_MS`.
+
+## 2026-10-31 — Run metadata covers image bytes, all inference code and the environment
+
+- **Decision:** `dataset_version` hashes the manifest and every image it lists.
+  `code_sha256` (was `rag_code_sha256`) covers every module in `app/rag`,
+  `app/pipeline` and `app/vision`, including the model call, prompt rendering
+  and JSON parsing. The metadata also records `vision_revision` and
+  `embedding_revision` (Hugging Face snapshot commits; `null` for a local
+  checkpoint) and `environment` (Python, platform, versions of the packages
+  that affect inference). All of it is part of the resume check.
+- **Why:** An external code review found that an image edit, a parser change
+  or a dependency upgrade left the metadata unchanged. The first full run
+  overlapped a dependency upgrade and could not say which versions it used.
+- **Consequences:** The dataset version changed from `1c2d43e84d260763` to
+  `535afeff43ba4934`, so the committed first-run files keep the old tag and the
+  next `make eval` writes new files (resuming the old ones was already refused,
+  because the prompts and knowledge changed). A package upgrade now also
+  requires `FRESH=1`. The CPU model is not recorded.
+
+## 2026-10-31 — Index validation, one pipeline at a time, upload pixel limit
+
+- **Decision:** `Retriever.load` rejects an index whose vector count differs
+  from `chunks.json`. `get_retriever` rejects an index whose chunks differ from
+  the current `knowledge/` chunking, or whose `build_stats.json` embedding
+  settings differ from the config. `predict` holds a process-wide lock from
+  model selection to the end of the Second Pass. Uploads above Pillow's
+  `MAX_IMAGE_PIXELS` (read at import) are rejected with 413.
+- **Why:** Only `make eval` rebuilds the index, so the CLI and API silently used
+  a stale index after a knowledge or embedding change. FastAPI runs sync
+  endpoints in a thread pool, so two requests could share an MLX model or load
+  two models at once (AGENTS.md §4). File size alone does not bound the decoded
+  image size.
+- **Consequences:** Rerun `python -m app.cli ingest` after editing knowledge;
+  indexes built before this change must be rebuilt once. Concurrent API
+  requests queue without a timeout. The health endpoint still reports
+  `index_ready` from the file's existence only.

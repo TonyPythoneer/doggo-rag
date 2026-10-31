@@ -9,7 +9,7 @@ Apple Silicon after model download. Full requirements: `docs/agents/spec.md`.
 
 ## Results
 
-200 images (100 dogs, 100 look-alikes), same model for both passes:
+First full run, 200 images (100 dogs, 100 look-alikes), same model for both passes:
 
 | Model | First Pass | Second Pass (RAG) | Change | Wrong → Right | Right → Wrong |
 |---|---:|---:|---:|---:|---:|
@@ -17,13 +17,22 @@ Apple Silicon after model download. Full requirements: `docs/agents/spec.md`.
 | lfm2-vl-450m | 75.9% | 83.4% | +7.5 pp | 20 | 5 |
 | qwen3-vl-2b | 93.4% | 93.4% | +0.0 pp | 0 | 0 |
 
-RAG helps the small model and slightly hurts the strongest one.
+These numbers do **not** yet answer the research question:
 
-- Full report: `results/eval.html`. The 3 failed
-  runs are listed there and never scored as `false`.
-- Lessons from the run: `docs/reflections/`.
-- Caveat: the run overlapped a dependency upgrade, and the metadata does not
-  record package versions. Rerun `make eval FRESH=1` if exact versions matter.
+- **Old prompts.** The run used earlier prompts whose example answer the
+  models often copied (for Qwen3, 157 of 198 descriptions). The prompts and
+  knowledge have changed since, and the current versions have not had a full
+  run. `docs/reflections/2026-10-31-first-full-evaluation.md` has the details.
+- **RAG is not isolated.** The Second Pass adds a second look, the First Pass
+  answer and the retrieved knowledge at once. A Second Pass without RAG would
+  be needed to credit the change to the knowledge (`spec.md` §13).
+- **Development numbers.** Prompts and knowledge were tuned on these same 200
+  images; there is no held-out set.
+- **Versions.** The run overlapped a dependency upgrade and recorded no package
+  versions. Runs started now record them (see Run metadata below).
+
+Full report: `results/eval.html`. The 3 failed runs are listed there and never
+scored as `false`.
 
 ## How it works
 
@@ -58,12 +67,18 @@ make web                      # web app at http://127.0.0.1:8888 (asks for the k
 `make eval` resumes after interruption and refuses to mix runs if prompts,
 knowledge or settings changed (then use `FRESH=1`).
 
+Run metadata (`results/<model>/*.metadata.json`) records the prompts, knowledge
+and inference-code hashes, retrieval and decoding settings, the Hugging Face
+snapshot commit of the vision and embedding models, the Python, OS and package
+versions, and a dataset version that hashes the manifest and every image.
+Any change to these stops a resume.
+
 If `doggo-dataset/images/` is missing: `python scripts/build_doggo_dataset.py`.
 
 ## Single image
 
 ```bash
-python -m app.cli ingest      # build the FAISS index once
+python -m app.cli ingest      # build the FAISS index (again after editing knowledge/)
 python -m app.cli predict doggo-dataset/images/non_dog/fox/fox_001.jpg [--model qwen3-vl-2b]
 ```
 
@@ -81,13 +96,16 @@ curl -s localhost:8888/api/v1/pipeline/predict \
 | `POST /api/v1/pipeline/predict` | Full two-pass pipeline (main endpoint) |
 | `GET /api/v1/images` | Dataset images (IDs, names, species, previews; no binary label) |
 | `GET /api/v1/images/dataset/{image_id}` | Dataset image preview |
-| `POST /api/v1/images/uploads` | Validate and temporarily store an uploaded image |
+| `POST /api/v1/images/uploads` | Validate (≤ 20 MiB, ≤ Pillow's ~89 MP limit) and temporarily store an uploaded image |
 | `GET /api/v1/images/uploads/{upload_id}` | Uploaded image preview |
 | `GET /api/v1/health` | Model and index readiness |
 
 The prediction response carries both passes, the retrieval query and documents,
 per-step statuses (`not_started`, `completed`, `failed`, `skipped`), stage
 errors and timings. Outputs of completed steps are kept when a later step fails.
+Requests run one at a time: a second request waits until the first finishes.
+Retrieval fails with a "rebuild" error when the index no longer matches
+`knowledge/` or the embedding settings.
 Retrieval `score` and model `confidence` are not calibrated probabilities. The
 HTTP endpoint accepts only dataset and upload references; use the CLI for local
 paths.
@@ -102,10 +120,13 @@ unguessable temporary IDs. Serve over HTTPS when not on localhost.
 ## Tests
 
 ```bash
-uv run pytest
+uv run pytest           # fake models; does not prove MLX inference works
+uv run pytest -m live   # real MLX: full pipeline once per model (needs make download + ingest)
 ```
 
-Tests use fake models, so passing tests do **not** prove MLX inference works.
+Live result on 2026-10-31: `lfm3-vl-2b` and `qwen3-vl-2b` pass. `lfm2-vl-450m`
+is marked as an expected failure: with the current prompt it returns `is_dog`
+and `confidence` but no `description`.
 
 ## More
 

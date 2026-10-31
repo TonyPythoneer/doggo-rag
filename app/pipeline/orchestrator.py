@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import Callable
 
 from app.config import MODEL_REGISTRY, AppConfig, get_config
@@ -13,6 +14,10 @@ from app.rag.retriever import Retriever
 from app.vision.model import VisionModel, VisionModelError, get_vision_model
 
 logger = logging.getLogger(__name__)
+
+# One pipeline at a time: the API runs requests in a thread pool, MLX makes no
+# thread-safety promise for a shared model, and switching models must not leave two loaded.
+_INFERENCE_LOCK = threading.Lock()
 
 
 def predict(
@@ -46,20 +51,21 @@ def predict(
             error=str(exc),
             stage_errors={"image": str(exc)},
         )
-    try:
-        model = model or get_vision_model(cfg.vision.model_id)
-    except VisionModelError as exc:
-        return PipelineResponse(
-            image=str(image_path),
-            model_id=cfg.vision.model_id,
-            status="error",
-            error=str(exc),
-            stage_errors={"model_loading": str(exc)},
-        )
+    with _INFERENCE_LOCK:
+        try:
+            model = model or get_vision_model(cfg.vision.model_id)
+        except VisionModelError as exc:
+            return PipelineResponse(
+                image=str(image_path),
+                model_id=cfg.vision.model_id,
+                status="error",
+                error=str(exc),
+                stage_errors={"model_loading": str(exc)},
+            )
 
-    stage = run_rag(
-        str(image_path), cfg=cfg, model=model, retriever=retriever, on_stage=on_stage
-    )
+        stage = run_rag(
+            str(image_path), cfg=cfg, model=model, retriever=retriever, on_stage=on_stage
+        )
     if stage.stage_errors:
         logger.error("paired inference failed for %s: %s", image, stage.stage_errors)
     error = "; ".join(f"{name}: {message}" for name, message in stage.stage_errors.items())

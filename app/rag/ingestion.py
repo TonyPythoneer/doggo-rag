@@ -15,6 +15,9 @@ from app.rag.chunking import TextChunk, chunk_markdown
 from app.rag.embeddings import Embedder
 from app.rag.retriever import Retriever
 
+BUILD_STATS_FILE = "build_stats.json"
+
+
 class KnowledgeBaseError(RuntimeError):
     pass
 
@@ -64,8 +67,8 @@ def build_index(
     stats = {
         "documents": len(SPECIES_DOCUMENT_IDS),
         "chunks": len(chunks),
-        "embedding_model": cfg.embedding.model_name,
+        "embedding": cfg.embedding.model_dump(),  # checked by get_retriever
         "index_dir": str(index_dir),
     }
-    (index_dir / "build_stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
+    (index_dir / BUILD_STATS_FILE).write_text(json.dumps(stats, indent=2), encoding="utf-8")
     return stats

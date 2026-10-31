@@ -344,3 +344,19 @@ def test_protected_endpoints_reject_bad_key(client, key):
 def test_protected_endpoints_fail_closed_without_server_key(client, monkeypatch):
     monkeypatch.setattr(get_config().server, "api_key", "")
     assert client.get("/api/v1/images").status_code == 503
+
+
+@pytest.mark.filterwarnings("ignore::PIL.Image.DecompressionBombWarning")
+@pytest.mark.parametrize("limit", ["app.api.images.MAX_UPLOAD_PIXELS", "PIL.Image.MAX_IMAGE_PIXELS"])
+def test_image_upload_rejects_too_many_pixels(image_catalog, monkeypatch, limit):
+    # The first limit hits the upload check, the second Pillow's own bomb error.
+    monkeypatch.setattr(limit, 100)
+    content = BytesIO()
+    Image.new("RGB", (30, 30)).save(content, format="PNG")
+
+    response = AuthedClient(create_app()).post(
+        "/api/v1/images/uploads",
+        files={"file": ("huge.png", content.getvalue(), "image/png")},
+    )
+
+    assert response.status_code == 413

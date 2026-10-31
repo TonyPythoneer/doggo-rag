@@ -1189,8 +1189,8 @@ def write_readme(counts: dict[str, int], all_passed: bool) -> None:
 
 A fully offline, licence-clean image dataset for binary classification of
 **dog vs non-dog** animal photographs. It is designed as a *fixed evaluation
-dataset* for comparing a Vision Model baseline against a Vision Model + Text RAG
-workflow on the same images.
+dataset* for comparing a Vision Model's First Pass with its RAG-assisted Second
+Pass on the same images.
 
 ## Counts
 
@@ -1257,12 +1257,13 @@ source page, licence, licence URL) is in `manifest.csv` and
 
 ## Intended use
 
-Fixed evaluation set only. Recommended experiments:
+Fixed evaluation set only. DOGGO RAG runs one paired workflow per image:
 
-1. **Baseline:** image → vision model → `dog` / `non_dog`
-2. **RAG-assisted:** image → vision model → text RAG → vision model → final label
+1. **First Pass:** image → vision model → `dog` / `non_dog` + visual description
+2. **RAG-assisted Second Pass:** description → text RAG → the same vision model
+   on the same image → final label
 
-Both experiments must use the same images and the same vision model. Never
+Both passes must use the same images and the same vision model. Never
 modify image contents or labels to improve model results.
 
 ## Rebuilding and re-validating

@@ -23,6 +23,9 @@ router = APIRouter(prefix="/api/v1/images", tags=["images"])
 UPLOAD_DIR = Path(tempfile.gettempdir()) / "doggo-rag-image-uploads"
 MAX_UPLOAD_BYTES = get_config().server.max_upload_mb * 1024 * 1024
 UPLOAD_MAX_AGE_SECONDS = get_config().server.upload_max_age_hours * 60 * 60
+# Pillow's decompression-bomb limit, captured before a library can disable it
+# (some mlx_vlm pipelines set it to None).
+MAX_UPLOAD_PIXELS = Image.MAX_IMAGE_PIXELS
 IMAGE_FORMATS = {
     "JPEG": (".jpg", "image/jpeg"),
     "PNG": (".png", "image/png"),
@@ -118,7 +121,11 @@ async def upload_image(file: Annotated[UploadFile, File()]) -> UploadResponse:
     try:
         with Image.open(BytesIO(content)) as image:
             image_format = image.format
+            if image.width * image.height > MAX_UPLOAD_PIXELS:  # Pillow only warns up to 2x
+                raise Image.DecompressionBombError(f"{image.size} exceeds {MAX_UPLOAD_PIXELS} pixels")
             image.verify()
+    except Image.DecompressionBombError as exc:
+        raise HTTPException(status_code=413, detail="Image dimensions are too large") from exc
     except (UnidentifiedImageError, OSError, ValueError) as exc:
         raise HTTPException(status_code=400, detail="Uploaded file is not a valid image") from exc
     if image_format not in IMAGE_FORMATS:
