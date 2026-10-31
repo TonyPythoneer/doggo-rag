@@ -13,7 +13,6 @@ Before making changes, read:
 1. `AGENTS.md`
 2. `docs/agents/spec.md`
 3. `docs/agents/PROGRESS.md`, if present (local only, see §5)
-4. `docs/agents/DECISIONS.md`
 
 Also inspect the relevant source code and existing tests before modifying anything.
 
@@ -69,7 +68,7 @@ For multi-session development:
 - Check Git status and existing changes.
 - Avoid overwriting unrelated user modifications.
 - Keep `docs/agents/PROGRESS.md` updated after each meaningful task: current state, open issues and the next recommended task. Remove issues once resolved; the history of completed work lives in Git commit messages.
-- `docs/agents/PROGRESS.md` is a local working file and is ignored by Git. Never commit it, and do not link to it from committed files. Put anything other people need in `README.md`, `docs/agents/DECISIONS.md` or commit messages.
+- `docs/agents/PROGRESS.md` is a local working file and is ignored by Git. Never commit it, and do not link to it from committed files. Put anything other people need in `README.md` or commit messages.
 
 If the implementation cannot be completed in one session, leave the repository in a clear and recoverable state.
 
@@ -83,7 +82,7 @@ Source data quoted verbatim (for example dataset file names and attributions) st
 When changing system behavior:
 
 - Update the relevant specification or technical documentation.
-- Record important architectural decisions.
+- Record important architectural decisions in commit messages or the README.
 - Remove outdated instructions when they are no longer valid.
 - Do not document planned behavior as implemented behavior.
 
