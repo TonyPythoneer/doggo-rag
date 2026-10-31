@@ -1,0 +1,102 @@
+{
+  "dataset": "doggo-dataset",
+  "generated_at": "2026-10-30T07:38:14+00:00",
+  "total_images": 200,
+  "label_counts": {
+    "dog": 100,
+    "non_dog": 100
+  },
+  "label_definition": "Practical binary definition for this project: domestic dog = dog; all other selected animals = non_dog. Dingo is explicitly labelled non_dog for this classification task regardless of biological taxonomy.",
+  "species": [
+    {
+      "species": "dog",
+      "label": "dog",
+      "target_count": 100,
+      "image_count": 100,
+      "directory": "images/dog"
+    },
+    {
+      "species": "wolf",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/wolf"
+    },
+    {
+      "species": "fox",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/fox"
+    },
+    {
+      "species": "coyote",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/coyote"
+    },
+    {
+      "species": "dingo",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/dingo"
+    },
+    {
+      "species": "cat",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/cat"
+    },
+    {
+      "species": "koala",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/koala"
+    },
+    {
+      "species": "red_panda",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/red_panda"
+    },
+    {
+      "species": "raccoon",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/raccoon"
+    },
+    {
+      "species": "bear",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/bear"
+    },
+    {
+      "species": "hyena",
+      "label": "non_dog",
+      "target_count": 10,
+      "image_count": 10,
+      "directory": "images/non_dog/hyena"
+    }
+  ],
+  "license_counts": {
+    "CC BY-SA 3.0": 19,
+    "Public domain": 22,
+    "CC BY-SA 4.0": 73,
+    "CC BY 2.0": 38,
+    "CC0 1.0": 7,
+    "CC BY 4.0": 20,
+    "CC BY 3.0": 3,
+    "CC BY-SA 2.5": 1,
+    "CC BY-SA 2.0": 12,
+    "CC BY 2.5 dk": 5
+  },
+  "source": "Wikimedia Commons (https://commons.wikimedia.org)"
+}
