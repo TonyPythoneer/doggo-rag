@@ -1,0 +1,49 @@
+# DOGGO RAG — runtime configuration.
+# All paths are relative to the repository root unless absolute.
+# Environment variables override: DOGGO_EMBEDDING_MODEL, DOGGO_TOP_K,
+# DOGGO_KNOWLEDGE_DIR, DOGGO_INDEX_DIR, DOGGO_DATASET_MANIFEST, DOGGO_API_KEY.
+
+vision:
+  # Local checkpoint directory (preferred). If absent, `model_repo` is loaded
+  # from the HuggingFace cache instead.
+  model_path: models/vision/LiquidAI/LFM3-VL-2B-MLX-4bit
+  model_repo: LiquidAI/LFM3-VL-2B-MLX-4bit
+  model_id: lfm3-vl-2b
+  backend: mlx-vlm
+  # Shared decoding settings for the First Pass and Second Pass of every model.
+  temperature: 0.0
+  seed: 42
+  max_tokens_first_pass: 512
+  max_tokens_second_pass: 600
+
+embedding:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+  normalize: true
+
+retrieval:
+  top_k: 5
+  oversample: 3
+  index_dir: vector_store
+
+knowledge:
+  dir: knowledge
+  chunk_max_chars: 1200
+
+dataset:
+  manifest: doggo-dataset/metadata/manifest.csv
+  images_dir: doggo-dataset/images
+
+results:
+  dir: results
+
+evaluation:
+  sample_seed: 42
+
+server:
+  host: 127.0.0.1
+  port: 8888
+  cors_origins:
+    - http://localhost:3000
+    - http://127.0.0.1:3000
+  max_upload_mb: 20
+  upload_max_age_hours: 24
