@@ -1,0 +1,446 @@
+{
+  "schema_version": "paired",
+  "experiments": {
+    "lfm3-vl-2b": {
+      "images": 200,
+      "paired_scored": 200,
+      "failed": 0,
+      "failed_images": [],
+      "stage_failures": {},
+      "inference_time": {
+        "first_pass": {
+          "count": 200,
+          "mean_seconds": 1.7871
+        },
+        "retrieval": {
+          "count": 200,
+          "mean_seconds": 0.0488
+        },
+        "second_pass": {
+          "count": 200,
+          "mean_seconds": 1.7677
+        }
+      },
+      "comparison": {
+        "paired_images": 200,
+        "first_pass": {
+          "count": 200,
+          "accuracy": 0.97,
+          "abstentions": 0,
+          "precision": 0.97,
+          "recall": 0.97,
+          "f1": 0.97,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                97,
+                3,
+                0
+              ],
+              [
+                3,
+                97,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.9,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 1.0,
+            "dog": 0.97,
+            "fox": 0.9,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 0.9
+          }
+        },
+        "second_pass": {
+          "count": 200,
+          "accuracy": 0.945,
+          "abstentions": 0,
+          "precision": 0.9159,
+          "recall": 0.98,
+          "f1": 0.9469,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                98,
+                2,
+                0
+              ],
+              [
+                9,
+                91,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.9,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 0.5,
+            "dog": 0.98,
+            "fox": 0.9,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 0.8
+          }
+        },
+        "accuracy_improvement_percentage_points": -2.5,
+        "transitions": {
+          "incorrect_to_correct": 1,
+          "correct_to_incorrect": 6,
+          "unchanged_correct": 188,
+          "unchanged_incorrect": 5
+        }
+      },
+      "dataset_version": "1c2d43e84d260763",
+      "result_file": "results/lfm3-vl-2b/paired-lfm3-vl-2b-1c2d43e84d260763.jsonl",
+      "metadata": {
+        "generated_at": "2026-10-31T13:17:22.098938+00:00",
+        "schema_version": "paired",
+        "vision_model": "lfm3-vl-2b",
+        "vision_repo": "LiquidAI/LFM3-VL-2B-MLX-4bit",
+        "vision_backend": "mlx-vlm",
+        "decoding": {
+          "temperature": 0.0,
+          "seed": 42,
+          "max_tokens_first_pass": 512,
+          "max_tokens_second_pass": 600
+        },
+        "prompts_sha256": "af63cb44c823d359",
+        "knowledge_sha256": "f3085ca5243c2903",
+        "retrieval": {
+          "query_source": "first_pass.description",
+          "top_k": 5,
+          "vector_store": "faiss(IndexFlatIP, cosine)",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+        },
+        "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+        "dataset_version": "1c2d43e84d260763"
+      }
+    },
+    "lfm2-vl-450m": {
+      "images": 200,
+      "paired_scored": 199,
+      "failed": 1,
+      "failed_images": [
+        "images/dog/dog_004"
+      ],
+      "stage_failures": {
+        "first_pass": 1
+      },
+      "inference_time": {
+        "first_pass": {
+          "count": 199,
+          "mean_seconds": 0.6792
+        },
+        "retrieval": {
+          "count": 199,
+          "mean_seconds": 0.0386
+        },
+        "second_pass": {
+          "count": 199,
+          "mean_seconds": 0.673
+        }
+      },
+      "comparison": {
+        "paired_images": 199,
+        "first_pass": {
+          "count": 199,
+          "accuracy": 0.7588,
+          "abstentions": 0,
+          "precision": 0.6861,
+          "recall": 0.9495,
+          "f1": 0.7966,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                94,
+                5,
+                0
+              ],
+              [
+                43,
+                57,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.8,
+            "cat": 0.8,
+            "coyote": 0.1,
+            "dingo": 0.0,
+            "dog": 0.9495,
+            "fox": 0.5,
+            "hyena": 0.9,
+            "koala": 0.8,
+            "raccoon": 0.9,
+            "red_panda": 0.5,
+            "wolf": 0.4
+          }
+        },
+        "second_pass": {
+          "count": 199,
+          "accuracy": 0.8342,
+          "abstentions": 0,
+          "precision": 0.7895,
+          "recall": 0.9091,
+          "f1": 0.8451,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                90,
+                9,
+                0
+              ],
+              [
+                24,
+                76,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.9,
+            "cat": 0.9,
+            "coyote": 0.9,
+            "dingo": 0.1,
+            "dog": 0.9091,
+            "fox": 0.7,
+            "hyena": 1.0,
+            "koala": 0.8,
+            "raccoon": 1.0,
+            "red_panda": 0.6,
+            "wolf": 0.7
+          }
+        },
+        "accuracy_improvement_percentage_points": 7.5377,
+        "transitions": {
+          "incorrect_to_correct": 20,
+          "correct_to_incorrect": 5,
+          "unchanged_correct": 146,
+          "unchanged_incorrect": 28
+        }
+      },
+      "dataset_version": "1c2d43e84d260763",
+      "result_file": "results/lfm2-vl-450m/paired-lfm2-vl-450m-1c2d43e84d260763.jsonl",
+      "metadata": {
+        "generated_at": "2026-10-31T13:29:10.030585+00:00",
+        "schema_version": "paired",
+        "vision_model": "lfm2-vl-450m",
+        "vision_repo": "mlx-community/LFM2-VL-450M-4bit",
+        "vision_backend": "mlx-vlm",
+        "decoding": {
+          "temperature": 0.0,
+          "seed": 42,
+          "max_tokens_first_pass": 512,
+          "max_tokens_second_pass": 600
+        },
+        "prompts_sha256": "af63cb44c823d359",
+        "knowledge_sha256": "f3085ca5243c2903",
+        "retrieval": {
+          "query_source": "first_pass.description",
+          "top_k": 5,
+          "vector_store": "faiss(IndexFlatIP, cosine)",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+        },
+        "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+        "dataset_version": "1c2d43e84d260763"
+      }
+    },
+    "qwen3-vl-2b": {
+      "images": 200,
+      "paired_scored": 198,
+      "failed": 2,
+      "failed_images": [
+        "images/non_dog/fox/fox_005",
+        "images/non_dog/wolf/wolf_001"
+      ],
+      "stage_failures": {
+        "first_pass": 2
+      },
+      "inference_time": {
+        "first_pass": {
+          "count": 198,
+          "mean_seconds": 2.4164
+        },
+        "retrieval": {
+          "count": 198,
+          "mean_seconds": 0.0313
+        },
+        "second_pass": {
+          "count": 198,
+          "mean_seconds": 2.4513
+        }
+      },
+      "comparison": {
+        "paired_images": 198,
+        "first_pass": {
+          "count": 198,
+          "accuracy": 0.9343,
+          "abstentions": 0,
+          "precision": 0.8991,
+          "recall": 0.98,
+          "f1": 0.9378,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                98,
+                2,
+                0
+              ],
+              [
+                11,
+                87,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 1.0,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 0.0,
+            "dog": 0.98,
+            "fox": 0.8889,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 1.0
+          }
+        },
+        "second_pass": {
+          "count": 198,
+          "accuracy": 0.9343,
+          "abstentions": 0,
+          "precision": 0.8991,
+          "recall": 0.98,
+          "f1": 0.9378,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                98,
+                2,
+                0
+              ],
+              [
+                11,
+                87,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 1.0,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 0.0,
+            "dog": 0.98,
+            "fox": 0.8889,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 1.0
+          }
+        },
+        "accuracy_improvement_percentage_points": 0.0,
+        "transitions": {
+          "incorrect_to_correct": 0,
+          "correct_to_incorrect": 0,
+          "unchanged_correct": 185,
+          "unchanged_incorrect": 13
+        }
+      },
+      "dataset_version": "1c2d43e84d260763",
+      "result_file": "results/qwen3-vl-2b/paired-qwen3-vl-2b-1c2d43e84d260763.jsonl",
+      "metadata": {
+        "generated_at": "2026-10-31T13:33:46.486502+00:00",
+        "schema_version": "paired",
+        "vision_model": "qwen3-vl-2b",
+        "vision_repo": "mlx-community/Qwen3-VL-2B-Instruct-4bit",
+        "vision_backend": "mlx-vlm",
+        "decoding": {
+          "temperature": 0.0,
+          "seed": 42,
+          "max_tokens_first_pass": 512,
+          "max_tokens_second_pass": 600
+        },
+        "prompts_sha256": "af63cb44c823d359",
+        "knowledge_sha256": "f3085ca5243c2903",
+        "retrieval": {
+          "query_source": "first_pass.description",
+          "top_k": 5,
+          "vector_store": "faiss(IndexFlatIP, cosine)",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+        },
+        "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+        "dataset_version": "1c2d43e84d260763"
+      }
+    }
+  }
+}

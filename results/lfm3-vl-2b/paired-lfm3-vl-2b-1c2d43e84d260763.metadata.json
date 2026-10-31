@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-10-31T14:31:32.292285+00:00",
+  "schema_version": "paired",
+  "vision_model": "lfm3-vl-2b",
+  "vision_repo": "LiquidAI/LFM3-VL-2B-MLX-4bit",
+  "vision_backend": "mlx-vlm",
+  "decoding": {
+    "temperature": 0.0,
+    "seed": 42,
+    "max_tokens_first_pass": 512,
+    "max_tokens_second_pass": 600
+  },
+  "prompts_sha256": "65fe652917150193",
+  "knowledge_sha256": "f3085ca5243c2903",
+  "retrieval": {
+    "query_source": "first_pass.description",
+    "top_k": 5,
+    "vector_store": "faiss(IndexFlatIP, cosine)",
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+  "dataset_version": "1c2d43e84d260763"
+}
