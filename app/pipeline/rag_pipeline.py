@@ -55,7 +55,7 @@ def run_rag(
 
     try:
         first, usage, raw = inference.run_first_pass(image, cfg=cfg, model=model)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - a failed stage must not abort the others
         return _fail(response, "first_pass", exc)
     response.first_pass = first
     response.usages["first_pass"] = usage
@@ -72,7 +72,7 @@ def run_rag(
         documents = (retriever or get_retriever()).search(
             first.description, top_k=cfg.retrieval.top_k, oversample=cfg.retrieval.oversample
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - a failed stage must not abort the others
         return _fail(response, "retrieval", exc)
     finally:
         response.timings["retrieval_s"] = round(time.perf_counter() - started, 3)
@@ -85,7 +85,7 @@ def run_rag(
         final, usage, raw = inference.run_second_pass(
             image, first, assemble_context(documents), cfg=cfg, model=model
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - a failed stage must not abort the others
         return _fail(response, "second_pass", exc)
     response.second_pass = final
     response.usages["second_pass"] = usage

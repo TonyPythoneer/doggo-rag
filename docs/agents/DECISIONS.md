@@ -169,6 +169,36 @@ Architectural and methodology decisions that are not obvious from the code.
   requests queue without a timeout. The health endpoint still reports
   `index_ready` from the file's existence only.
 
+## 2026-10-31 — Frontend split by role, one API origin, script state passed explicitly
+
+- **Decision:** `frontend/src` is `api/client.ts` (axios client, API key, calls),
+  `types/pipeline.ts` (response types and the model display names), `display.ts`
+  (species headings, grouping, labels), `components/` (`icons`, `StatusBadge`,
+  `RawOutput`, `StepCard`, `PassCard`, `PipelineDiagram`, `ImagePicker`) and
+  `App.tsx` (state, handlers, layout). Requests and image previews build their
+  URL from one `API_ORIGIN` derived from `VITE_API_PORT`.
+  `scripts/evaluate-models.py` passes `model_ids` and `results_dir` explicitly
+  instead of assigning module globals.
+- **Why:** A follow-up review found a 628-line `App.tsx` holding the API client,
+  types, components and page state, an image preview that always used port 8888
+  while the client honoured `VITE_API_PORT`, and a script whose run state lived
+  in globals that tests had to overwrite.
+- **Consequences:** Behavior, styling and the HTTP contract are unchanged. The
+  frontend keeps its own model display names; the supported IDs themselves are
+  still defined only in `MODEL_REGISTRY` (`app/config.py`). `main(argv,
+  results_dir=None)` exists so tests write to a temporary directory.
+
+## 2026-10-31 — Committed evaluation outputs are generated artifacts
+
+- **Decision:** The per-image JSONL is the raw evaluation result and
+  `<file>.metadata.json` holds the experiment settings. `<schema>-summary.json`
+  and `eval.html` are derived: `make eval` rewrites both from the JSONL. The
+  committed copies are snapshots for sharing, never an input for code changes.
+- **Why:** The review asked which result files are raw data and which are
+  generated, so nobody hand-edits or treats a report as a second source.
+- **Consequences:** To change a number, rerun the evaluation; do not edit
+  `summary.json` or `eval.html` by hand.
+
 ## 2026-10-31 — One pipeline result type, evaluation split by reason to change
 
 - **Decision:** `RagStage` is gone. `run_rag` fills and returns the

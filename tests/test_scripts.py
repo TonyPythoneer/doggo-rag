@@ -51,12 +51,13 @@ def test_report_shows_paired_comparison_transitions_and_matrix(tmp_path):
     assert page.index("<th>Dogs</th>") < page.index("<th>Foxes</th>")
 
 
+# Two models keep the script tests fast; the script defaults to every MODEL_REGISTRY entry.
+MODELS = ("lfm3-vl-2b", "lfm2-vl-450m")
+
+
 @pytest.fixture()
-def evaluate(tmp_path, monkeypatch):
-    module = _load_script("evaluate_models", "scripts/evaluate-models.py")
-    monkeypatch.setattr(module, "MODEL_IDS", ["lfm3-vl-2b", "lfm2-vl-450m"])
-    monkeypatch.setattr(module, "RESULTS_DIR", tmp_path)
-    return module
+def evaluate():
+    return _load_script("evaluate_models", "scripts/evaluate-models.py")
 
 
 def _write_pair(root: Path, model_id: str, query: str = "visible animal traits") -> None:
@@ -75,10 +76,10 @@ def test_consolidate_summary_keeps_models_separate_and_preserves_legacy(tmp_path
     legacy = tmp_path / "lfm3-vl-2b" / "baseline.jsonl"
     legacy.parent.mkdir()
     legacy.write_text('{"legacy":true}\n', encoding="utf-8")
-    for model_id in evaluate.MODEL_IDS:
+    for model_id in MODELS:
         _write_pair(tmp_path, model_id)
 
-    summary = evaluate.consolidate_summary()
+    summary = evaluate.consolidate_summary(tmp_path, list(MODELS))
 
     assert set(summary["experiments"]) == {"lfm3-vl-2b", "lfm2-vl-450m"}
     for model_id, experiment in summary["experiments"].items():
@@ -88,13 +89,13 @@ def test_consolidate_summary_keeps_models_separate_and_preserves_legacy(tmp_path
 
 
 def test_verify_accepts_consistent_paired_records(tmp_path, evaluate):
-    for model_id in evaluate.MODEL_IDS:
+    for model_id in MODELS:
         _write_pair(tmp_path, model_id, query=model_id)
-    evaluate.consolidate_summary()
+    evaluate.consolidate_summary(tmp_path, list(MODELS))
 
-    assert verify(tmp_path, models=tuple(evaluate.MODEL_IDS), expected_records=1) == []
+    assert verify(tmp_path, models=MODELS, expected_records=1) == []
     assert "1 records, expected 200" in "\n".join(
-        verify(tmp_path, models=tuple(evaluate.MODEL_IDS), expected_records=200)
+        verify(tmp_path, models=MODELS, expected_records=200)
     )
 
 
@@ -122,8 +123,8 @@ def test_main_passes_limit_to_every_model_and_checks_that_count(tmp_path, evalua
         evaluate.runner, "run_evaluation", lambda **kwargs: limits.append(kwargs["limit"]) or {}
     )
 
-    assert evaluate.main(["--limit", "2"]) == 1  # nothing written, so verification fails
-    assert limits == [2, 2]
+    assert evaluate.main(["--limit", "2"], results_dir=tmp_path) == 1  # nothing written
+    assert limits == [2, 2, 2]  # every supported model
     assert (tmp_path / "eval.html").is_file()
 
 
@@ -135,7 +136,7 @@ def test_start_fresh_only_removes_paired_v2_results(tmp_path, evaluate):
     legacy = directory / "baseline.jsonl"
     legacy.write_text("{}\n", encoding="utf-8")
 
-    evaluate.start_fresh()
+    evaluate.start_fresh(tmp_path, list(MODELS))
 
     assert not paired.exists()
     assert legacy.exists()
@@ -216,7 +217,7 @@ def test_main_dogs_runs_in_fast_directory_and_reports_there(tmp_path, evaluate, 
         evaluate.runner, "run_evaluation", lambda **kwargs: seen.append(kwargs) or {}
     )
 
-    evaluate.main(["--dogs", "10"])
+    evaluate.main(["--dogs", "10"], results_dir=tmp_path)
 
     assert {kwargs["dogs"] for kwargs in seen} == {10}
     assert all(kwargs["output_dir"].parent == tmp_path / "fast" for kwargs in seen)
@@ -230,6 +231,6 @@ def test_main_model_runs_only_that_model(tmp_path, evaluate, monkeypatch):
         evaluate.runner, "run_evaluation", lambda **kwargs: seen.append(kwargs["cfg"]) or {}
     )
 
-    evaluate.main(["--model", "qwen3-vl-2b"])
+    evaluate.main(["--model", "qwen3-vl-2b"], results_dir=tmp_path)
 
     assert [cfg.vision.model_id for cfg in seen] == ["qwen3-vl-2b"]

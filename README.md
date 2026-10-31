@@ -32,7 +32,8 @@ These numbers do **not** yet answer the research question:
   versions. Runs started now record them (see Run metadata below).
 
 Full report: `results/eval.html`. The 3 failed runs are listed there and never
-scored as `false`.
+scored as `false`. The per-image JSONL files are the raw results; `results/paired-summary.json`
+and `eval.html` are generated from them by `make eval` (rerun instead of editing).
 
 ## How it works
 

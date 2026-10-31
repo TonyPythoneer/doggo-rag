@@ -152,7 +152,7 @@ def test_pipeline_predict_resolves_uploaded_reference(client, image_catalog, mon
 def test_pipeline_removes_uploaded_file_after_success_or_failure(
     client, image_catalog, monkeypatch, fail_first
 ):
-    _, uploads_dir = image_catalog
+    _, _uploads_dir = image_catalog
     content = BytesIO()
     Image.new("RGB", (2, 2), color="green").save(content, format="PNG")
     uploaded = client.post(

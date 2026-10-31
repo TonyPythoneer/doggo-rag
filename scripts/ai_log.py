@@ -29,7 +29,7 @@ MAX_FLIPS = 12
 
 
 def git(*args: str) -> str:
-    out = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    out = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=False)
     return out.stdout.strip()
 
 
@@ -96,8 +96,10 @@ def model_section(model_dir: Path) -> list[str]:
     docs = Counter(d for r in ok for d in r["retrieved_document_ids"])
     lines += [
         "",
-        f"- unique First Pass descriptions: {len(descriptions)}/{len(ok)}; "
-        f"most repeated x{top_count}: {top_text[:120]!r}",
+        (
+            f"- unique First Pass descriptions: {len(descriptions)}/{len(ok)}; "
+            f"most repeated x{top_count}: {top_text[:120]!r}"
+        ),
         f"- most common Second Pass (is_dog, confidence): {answers.most_common(3)}",
         f"- most retrieved documents: {docs.most_common(5)}",
     ]

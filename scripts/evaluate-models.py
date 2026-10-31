@@ -24,45 +24,68 @@ from app.evaluation.metrics import summarize
 from app.evaluation.report import build_report
 from app.evaluation.verify import SUMMARY_FILE, verify
 
-MODEL_IDS = list(MODEL_REGISTRY)
-RESULTS_DIR = load_config().results.resolve_dir()
 
-
-def start_fresh() -> None:
+def start_fresh(results_dir: Path, model_ids: list[str]) -> None:
     """Remove only versioned paired outputs; legacy measured results stay."""
-    for model_id in MODEL_IDS:
-        for path in (RESULTS_DIR / model_id).glob(f"{RESULT_SCHEMA_VERSION}-*"):
+    for model_id in model_ids:
+        for path in (results_dir / model_id).glob(f"{RESULT_SCHEMA_VERSION}-*"):
             path.unlink()
 
 
-def consolidate_summary() -> dict:
+def consolidate_summary(results_dir: Path, model_ids: list[str]) -> dict:
     """Summarize each model's current-version result file independently."""
     summary: dict = {"schema_version": RESULT_SCHEMA_VERSION, "experiments": {}}
     base = load_config()
-    for model_id in MODEL_IDS:
+    for model_id in model_ids:
         cfg = base.for_model(model_id)
-        path = results.result_path(cfg, RESULTS_DIR / model_id)
+        path = results.result_path(cfg, results_dir / model_id)
         key = metadata.experiment_key(cfg)
         records = [r for r in results.load_records(path) if r.get("experiment_key") == key]
         if not records:
             continue
-        meta = results.metadata_path(cfg, RESULTS_DIR / model_id)
+        meta = results.metadata_path(cfg, results_dir / model_id)
         summary["experiments"][model_id] = {
             **summarize(records),
             "dataset_version": metadata.dataset_version(cfg),
             "result_file": str(path.relative_to(ROOT) if path.is_relative_to(ROOT) else path),
             "metadata": json.loads(meta.read_text(encoding="utf-8")) if meta.is_file() else {},
         }
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    (RESULTS_DIR / SUMMARY_FILE).write_text(
+    results_dir.mkdir(parents=True, exist_ok=True)
+    (results_dir / SUMMARY_FILE).write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return summary
 
 
-def main(argv: list[str] | None = None) -> int:
+def run_models(model_ids: list[str], results_dir: Path, args: argparse.Namespace) -> bool:
+    """Evaluate every selected model; one model's failure does not stop the others."""
+    from app.rag.ingestion import build_index
+
+    # Rebuild once per run so the index always matches the knowledge files and embedder.
+    base = load_config()
+    build_index(base)
+    failed = False
+    for model_id in model_ids:
+        print(f"=== {model_id} ===", flush=True)
+        try:
+            result = runner.run_evaluation(
+                limit=args.limit,
+                cfg=base.for_model(model_id),
+                output_dir=results_dir / model_id,
+                dogs=args.dogs,
+            )
+            print(json.dumps(result, indent=2), flush=True)
+        except Exception as exc:  # noqa: BLE001 - keep other model runs independent
+            failed = True
+            print(f"Model {model_id} failed: {exc}", flush=True)
+    return failed
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fresh", action="store_true", help=f"delete {RESULT_SCHEMA_VERSION} results first")
+    parser.add_argument(
+        "--fresh", action="store_true", help=f"delete {RESULT_SCHEMA_VERSION} results first"
+    )
     parser.add_argument("--limit", type=int, default=None, help="only the first N images")
     parser.add_argument(
         "--dogs", type=int, default=None, help="fast mode: N sampled dogs + every non-dog"
@@ -70,41 +93,25 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--model", choices=list(MODEL_REGISTRY), default=None, help="only this model"
     )
-    args = parser.parse_args(argv)
-    global RESULTS_DIR, MODEL_IDS
-    if args.model:
-        MODEL_IDS = [args.model]
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None, results_dir: Path | None = None) -> int:
+    args = parse_args(argv)
+    model_ids = [args.model] if args.model else list(MODEL_REGISTRY)
+    target = results_dir or load_config().results.resolve_dir()
     if args.dogs is not None:
-        RESULTS_DIR = RESULTS_DIR / "fast"  # sampled runs never mix with the full results
+        target = target / "fast"  # sampled runs never mix with the full results
     if args.fresh:
-        start_fresh()
+        start_fresh(target, model_ids)
 
-    from app.rag.ingestion import build_index
-
-    # Rebuild once per run so the index always matches the knowledge files and embedder.
-    base = load_config()
-    build_index(base)
-    failed = False
-    for model_id in MODEL_IDS:
-        print(f"=== {model_id} ===", flush=True)
-        try:
-            result = runner.run_evaluation(
-                limit=args.limit,
-                cfg=base.for_model(model_id),
-                output_dir=RESULTS_DIR / model_id,
-                dogs=args.dogs,
-            )
-            print(json.dumps(result, indent=2), flush=True)
-        except Exception as exc:  # keep other model runs independent
-            failed = True
-            print(f"Model {model_id} failed: {exc}", flush=True)
-
-    consolidate_summary()
+    failed = run_models(model_ids, target, args)
+    consolidate_summary(target, model_ids)
     expected = DATASET_SIZE if args.dogs is None else NON_DOG_COUNT + args.dogs
-    problems = verify(RESULTS_DIR, models=tuple(MODEL_IDS), expected_records=args.limit or expected)
+    problems = verify(target, models=tuple(model_ids), expected_records=args.limit or expected)
     for problem in problems:
         print(f"- {problem}", flush=True)
-    report = build_report(RESULTS_DIR / SUMMARY_FILE, RESULTS_DIR / "eval.html")
+    report = build_report(target / SUMMARY_FILE, target / "eval.html")
     print(f"Wrote {report}" + (" (verification problems above)" if problems else ""), flush=True)
     return 1 if failed or problems else 0
 
