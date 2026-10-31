@@ -1,0 +1,42 @@
+[project]
+name = "doggo-rag"
+version = "1.0.0"
+description = "Local-first Vision + Text RAG E2E evaluation: does retrieved knowledge improve a local VLM's dog vs non-dog classification?"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi",
+    "python-multipart",
+    "uvicorn[standard]",
+    "pydantic",
+    "pyyaml",
+    "numpy",
+    "pillow",
+    "requests",
+    "jinja2",
+    "faiss-cpu",
+    "sentence-transformers",
+    "mlx-vlm; sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+    "httpx",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+markers = [
+    "live: tests that load the real vision model (deselect with -m 'not live')",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
