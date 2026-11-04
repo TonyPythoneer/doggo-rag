@@ -11,6 +11,7 @@ import pytest
 from app.config import load_config
 from app.evaluation import metadata, report, results
 from app.evaluation.verify import verify
+from app.vision.schemas import SecondPassResult
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -234,3 +235,33 @@ def test_main_model_runs_only_that_model(tmp_path, evaluate, monkeypatch):
     evaluate.main(["--model", "qwen3-vl-2b"], results_dir=tmp_path)
 
     assert [cfg.vision.model_id for cfg in seen] == ["qwen3-vl-2b"]
+
+
+def test_rag_lab_splits_every_species_by_image_number():
+    lab = _load_script("rag_lab", "scripts/rag-lab.py")
+
+    assert lab.in_split("images/dog/dog_002.jpg", "dev")
+    assert lab.in_split("images/non_dog/red_panda/red_panda_007.jpg", "test")
+    assert not lab.in_split("images/non_dog/red_panda/red_panda_007.jpg", "dev")
+    assert lab.in_split("images/dog/dog_001.jpg", "all")
+
+
+def test_rag_lab_cache_reuses_outputs_per_prompt_and_thinking(tmp_path, monkeypatch):
+    lab = _load_script("rag_lab", "scripts/rag-lab.py")
+    calls = []
+
+    def generate(self, image_path, prompt, max_tokens, thinking=False, schema=None):
+        calls.append((prompt, thinking))
+        return f"answer {len(calls)}"
+
+    monkeypatch.setattr(lab.VisionModel, "generate", generate)
+    lab.cache_generate(tmp_path / "cache.jsonl")
+    model = lab.VisionModel(load_config())
+
+    first = model.generate("img.jpg", "p", 10)
+    assert model.generate("img.jpg", "p", 10) == first
+    assert model.generate("img.jpg", "p", 10, thinking=True) != first
+    assert model.generate("img.jpg", "p", 10, schema=SecondPassResult) != first
+    lab.cache_generate(tmp_path / "cache.jsonl")  # a new run reads the cache from disk
+    assert model.generate("img.jpg", "p", 10) == first
+    assert calls == [("p", False), ("p", True), ("p", False)]
