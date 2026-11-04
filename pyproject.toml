@@ -31,10 +31,10 @@ package = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -m 'not live'"
 pythonpath = ["."]
 markers = [
-    "live: tests that load the real vision model (deselect with -m 'not live')",
+    "live: real MLX inference with every supported model (excluded by default; run with -m live)",
 ]
 
 [tool.ruff]
