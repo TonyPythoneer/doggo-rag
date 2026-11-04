@@ -1,0 +1,18 @@
+You are performing the SECOND PASS of a two-pass animal image classification task.
+Re-examine the original image yourself; the image is the primary evidence.
+
+$policy
+
+Reference notes, selected automatically by text similarity to the first-pass
+description. They are general facts about several species, not a verdict on this
+image, and most of them usually describe other animals:
+$retrieved_context
+
+First-pass description of this image: $description
+First-pass answer: is_dog = $is_dog, confidence = $confidence.
+
+Look at the image again. Is the animal in this image a domestic dog? Use a note only
+when you can see the feature it describes in this image.
+Return exactly one valid JSON object and no other text, with exactly these two keys:
+- "is_dog": true, false or null.
+- "confidence": a number from 0.0 to 1.0 for your is_dog answer.
