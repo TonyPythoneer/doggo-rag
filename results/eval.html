@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOGGO RAG evaluation</title>
+<style>:root {
+  --bg: #fbf5ec; --surface: #fffdf9; --sunken: #f2e7d8; --header: #ffeec4;
+  --text: #2e2219; --muted: #6f5d4e; --border: #eddcc6; --border-strong: #dbc2a2;
+  --accent: #d9622b; --ball: #ffcf3f;
+  --success: #346c41; --success-soft: #e3f0dc; --success-line: #b5d6aa;
+  --danger: #b23a2c; --danger-soft: #fbe3dc; --danger-line: #efb3a6;
+  --neutral: #6f5d4e; --neutral-soft: #f0e7dc;
+  --display: ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+[data-trend="up"] { --tone: var(--success); --tone-soft: var(--success-soft); --tone-line: var(--success-line); }
+[data-trend="down"] { --tone: var(--danger); --tone-soft: var(--danger-soft); --tone-line: var(--danger-line); }
+[data-trend="flat"] { --tone: var(--neutral); --tone-soft: var(--neutral-soft); --tone-line: var(--border-strong); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--body); }
+h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 600; line-height: 1.2; }
+p { margin: 0; }
+.header { background: var(--header); border-bottom: 4px solid var(--border); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+.header .wrap { padding-top: 24px; padding-bottom: 24px; display: grid; gap: 4px; }
+.header h1 { font-size: 30px; }
+.header p, .muted { color: var(--muted); }
+.muted { font-size: 14px; }
+main.wrap { display: grid; gap: 24px; padding-top: 32px; padding-bottom: 48px; }
+.card { background: var(--surface); border: 2px solid var(--border); border-radius: 24px;
+  box-shadow: 0 4px 0 var(--border); padding: 24px; display: grid; gap: 16px; min-width: 0; }
+.card h2 { font-size: 22px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.howto { display: grid; gap: 8px; padding-left: 20px; margin: 0; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px;
+  border: 2px solid var(--tone-line); background: var(--tone-soft); color: var(--tone);
+  font-size: 14px; font-weight: 700; white-space: nowrap; }
+.big { font-family: var(--display); font-size: 30px; font-weight: 600; }
+.arrow { color: var(--muted); margin: 0 6px; }
+.label { color: var(--muted); font-size: 14px; }
+.stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; }
+.stats b { text-align: right; }
+.meter { display: block; height: 10px; border-radius: 999px; background: var(--sunken); overflow: hidden; min-width: 80px; }
+.meter span { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+.meter.second span { background: var(--ball); }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px; border-bottom: 2px dashed var(--border); text-align: left; vertical-align: middle; }
+th { color: var(--muted); font-weight: 700; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+.callout { padding: 12px 16px; border: 2px solid var(--danger-line); border-radius: 16px;
+  background: var(--danger-soft); color: var(--danger); font-size: 14px; overflow-wrap: anywhere; }
+details { border: 2px solid var(--border); border-radius: 16px; padding: 12px 16px; background: var(--bg); }
+summary { cursor: pointer; font-weight: 700; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 0; font-size: 14px; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+code { font-family: var(--mono); font-size: 13px; }
+.section-title { display: grid; gap: 4px; }</style>
+</head>
+<body>
+<header class="header"><div class="wrap">
+  <h1>DOGGO RAG evaluation</h1>
+  <p>Does a second look with retrieved animal facts help each model spot domestic dogs?</p>
+</div></header>
+<main class="wrap">
+  <section class="card">
+    <h2>How to read this</h2>
+    <ol class="howto">
+      <li><strong>First Pass:</strong> the model looks at the photo alone and answers
+        “Domestic dog”, “Not a domestic dog” or “Uncertain”.</li>
+      <li><strong>Second Pass:</strong> the same model looks at the same photo again, this time with
+        its first answer and animal facts found by RAG retrieval.</li>
+      <li>Both passes are scored on the same photos. A run that failed is listed separately and is
+        never counted as a wrong answer. “Uncertain” counts as wrong. Dingoes count as not a dog.</li>
+      <li>A green ▲ means the second look got more answers right; a red ▼ means fewer.
+        “pp” = percentage points.</li>
+    </ol>
+  </section>
+  <div class="grid">
+    <section class="card">
+      <h2>LFM3 VL 2B (Default)</h2>
+      <p><span class="big">97.0%</span><span class="arrow">→</span><span class="big">97.5%</span></p>
+      <p class="label">Correct answers: First Pass → Second Pass</p>
+      <p><span class="badge" data-trend="up">▲ +0.5 pp better</span></p>
+      <div class="stats">
+        <span>Fixed by the second look</span><b><span class="badge" data-trend="up">1</span></b>
+        <span>Broken by the second look</span><b><span class="badge" data-trend="down">0</span></b>
+        <span>Right both times</span><b>194</b>
+        <span>Wrong both times</span><b>5</b>
+        <span>Images scored</span><b>200 of 200</b>
+        <span>Failed runs (not scored)</span><b><span class="badge" data-trend="flat">0</span></b>
+      </div>
+    </section>
+    <section class="card">
+      <h2>LFM2 VL 450M</h2>
+      <p><span class="big">77.4%</span><span class="arrow">→</span><span class="big">87.9%</span></p>
+      <p class="label">Correct answers: First Pass → Second Pass</p>
+      <p><span class="badge" data-trend="up">▲ +10.5 pp better</span></p>
+      <div class="stats">
+        <span>Fixed by the second look</span><b><span class="badge" data-trend="up">20</span></b>
+        <span>Broken by the second look</span><b><span class="badge" data-trend="down">0</span></b>
+        <span>Right both times</span><b>147</b>
+        <span>Wrong both times</span><b>23</b>
+        <span>Images scored</span><b>190 of 200</b>
+        <span>Failed runs (not scored)</span><b><span class="badge" data-trend="down">10</span></b>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Qwen3 VL 2B</h2>
+      <p><span class="big">83.7%</span><span class="arrow">→</span><span class="big">93.9%</span></p>
+      <p class="label">Correct answers: First Pass → Second Pass</p>
+      <p><span class="badge" data-trend="up">▲ +10.2 pp better</span></p>
+      <div class="stats">
+        <span>Fixed by the second look</span><b><span class="badge" data-trend="up">26</span></b>
+        <span>Broken by the second look</span><b><span class="badge" data-trend="down">6</span></b>
+        <span>Right both times</span><b>158</b>
+        <span>Wrong both times</span><b>6</b>
+        <span>Images scored</span><b>196 of 200</b>
+        <span>Failed runs (not scored)</span><b><span class="badge" data-trend="down">4</span></b>
+      </div>
+    </section>
+  </div>
+  <section class="card">
+    <div class="section-title"><h2>LFM3 VL 2B (Default)</h2>
+    <p><span class="badge" data-trend="up">▲ +0.5 pp better</span></p></div>
+    <h3>What it answered</h3><div class="table-scroll"><table>
+  <tr><th></th><th class="num" colspan="3">First Pass said…</th><th class="num" colspan="3">Second Pass said…</th></tr>
+  <tr><th>Photo shows</th><th class="num">Domestic dog</th><th class="num">Not a domestic dog</th><th class="num">Uncertain</th><th class="num">Domestic dog</th><th class="num">Not a domestic dog</th><th class="num">Uncertain</th></tr>
+  <tr><th>Dog photos</th><td class="num">98</td><td class="num">2</td><td class="num">0</td><td class="num">98</td><td class="num">2</td><td class="num">0</td></tr>
+  <tr><th>Other animal photos</th><td class="num">3</td><td class="num">96</td><td class="num">1</td><td class="num">2</td><td class="num">97</td><td class="num">1</td></tr>
+</table></div>
+<p class="muted">Right answers: "Domestic dog" for dog photos, "Not a domestic dog" for every other animal.
+"Uncertain" counts as wrong.</p>
+
+    <h3>Correct answers by animal</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Animal</th><th class="num" colspan="2">First Pass correct</th>
+          <th class="num" colspan="2">Second Pass correct</th><th class="num">Change</th></tr>
+      <tr><th>Dogs</th>
+        <td class="num">98.0%</td><td><span class="meter"><span style="width:98%"></span></span></td>
+        <td class="num">98.0%</td><td><span class="meter second"><span style="width:98%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Bears</th>
+        <td class="num">90.0%</td><td><span class="meter"><span style="width:90%"></span></span></td>
+        <td class="num">90.0%</td><td><span class="meter second"><span style="width:90%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Cats</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Coyotes</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Dingoes</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Foxes</th>
+        <td class="num">90.0%</td><td><span class="meter"><span style="width:90%"></span></span></td>
+        <td class="num">90.0%</td><td><span class="meter second"><span style="width:90%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Hyenas</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Koalas</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Raccoons</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Red pandas</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Wolves</th>
+        <td class="num">80.0%</td><td><span class="meter"><span style="width:80%"></span></span></td>
+        <td class="num">90.0%</td><td><span class="meter second"><span style="width:90%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +10.0 pp better</span></td></tr>
+    </table></div>
+    <h3>Dog-detection scores</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Score (dog = positive)</th><th class="num">First Pass</th><th class="num">Second Pass</th></tr>
+      <tr><th>Precision<br><span class="muted">When it says “dog”, how often it is right</span></th>
+        <td class="num">0.9703</td><td class="num">0.9800</td></tr>
+      <tr><th>Recall<br><span class="muted">Of all dog photos, how many it found</span></th>
+        <td class="num">0.9800</td><td class="num">0.9800</td></tr>
+      <tr><th>F1<br><span class="muted">Balance of precision and recall</span></th>
+        <td class="num">0.9751</td><td class="num">0.9800</td></tr>
+    </table></div>
+    <h3>Average time per image</h3>
+    <p><span class="badge" data-trend="flat">First Pass: 6.07 s</span> <span class="badge" data-trend="flat">RAG retrieval: 0.07 s</span> <span class="badge" data-trend="flat">Second Pass: 7.11 s</span> </p>
+    <details><summary>Run settings</summary><dl>
+<dt>Model repo</dt><dd><code>LiquidAI/LFM3-VL-2B-MLX-4bit</code></dd>
+<dt>Decoding</dt><dd><code>temperature 0.0, seed 42</code></dd>
+<dt>Embedding model</dt><dd><code>sentence-transformers/all-MiniLM-L6-v2</code></dd>
+<dt>Retrieved documents</dt><dd><code>top 5, query = First Pass description</code></dd>
+<dt>Prompts digest</dt><dd><code>361f64a20b471254</code></dd>
+<dt>Knowledge digest</dt><dd><code>62e630fd097a3417</code></dd>
+<dt>Dataset version</dt><dd><code>535afeff43ba4934</code></dd>
+<dt>Run started</dt><dd><code>2026-11-03T11:11:09.647652+00:00</code></dd>
+<dt>Result file</dt><dd><code>results/lfm3-vl-2b/paired-lfm3-vl-2b-535afeff43ba4934.jsonl</code></dd>
+    </dl></details>
+  </section>
+  <section class="card">
+    <div class="section-title"><h2>LFM2 VL 450M</h2>
+    <p><span class="badge" data-trend="up">▲ +10.5 pp better</span></p></div>
+    <p class="callout"><strong>Failed runs</strong> (not scored, never counted as "not a dog").
+      Failed at — First Pass: 10.
+      Images: <code>images/dog/dog_006</code>, <code>images/dog/dog_024</code>, <code>images/dog/dog_031</code>, <code>images/dog/dog_032</code>, <code>images/dog/dog_091</code>, <code>images/non_dog/bear/bear_004</code>, <code>images/non_dog/dingo/dingo_009</code>, <code>images/non_dog/fox/fox_003</code>, <code>images/non_dog/raccoon/raccoon_003</code>, <code>images/non_dog/red_panda/red_panda_003</code></p>
+    <h3>What it answered</h3><div class="table-scroll"><table>
+  <tr><th></th><th class="num" colspan="3">First Pass said…</th><th class="num" colspan="3">Second Pass said…</th></tr>
+  <tr><th>Photo shows</th><th class="num">Domestic dog</th><th class="num">Not a domestic dog</th><th class="num">Uncertain</th><th class="num">Domestic dog</th><th class="num">Not a domestic dog</th><th class="num">Uncertain</th></tr>
+  <tr><th>Dog photos</th><td class="num">93</td><td class="num">2</td><td class="num">0</td><td class="num">93</td><td class="num">2</td><td class="num">0</td></tr>
+  <tr><th>Other animal photos</th><td class="num">41</td><td class="num">54</td><td class="num">0</td><td class="num">21</td><td class="num">74</td><td class="num">0</td></tr>
+</table></div>
+<p class="muted">Right answers: "Domestic dog" for dog photos, "Not a domestic dog" for every other animal.
+"Uncertain" counts as wrong.</p>
+
+    <h3>Correct answers by animal</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Animal</th><th class="num" colspan="2">First Pass correct</th>
+          <th class="num" colspan="2">Second Pass correct</th><th class="num">Change</th></tr>
+      <tr><th>Dogs</th>
+        <td class="num">97.9%</td><td><span class="meter"><span style="width:98%"></span></span></td>
+        <td class="num">97.9%</td><td><span class="meter second"><span style="width:98%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Bears</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Cats</th>
+        <td class="num">100.0%</td><td><span class="meter"><span style="width:100%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Coyotes</th>
+        <td class="num">50.0%</td><td><span class="meter"><span style="width:50%"></span></span></td>
+        <td class="num">70.0%</td><td><span class="meter second"><span style="width:70%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +20.0 pp better</span></td></tr>
+      <tr><th>Dingoes</th>
+        <td class="num">0.0%</td><td><span class="meter"><span style="width:0%"></span></span></td>
+        <td class="num">0.0%</td><td><span class="meter second"><span style="width:0%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Foxes</th>
+        <td class="num">44.4%</td><td><span class="meter"><span style="width:44%"></span></span></td>
+        <td class="num">88.9%</td><td><span class="meter second"><span style="width:89%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +44.5 pp better</span></td></tr>
+      <tr><th>Hyenas</th>
+        <td class="num">50.0%</td><td><span class="meter"><span style="width:50%"></span></span></td>
+        <td class="num">80.0%</td><td><span class="meter second"><span style="width:80%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +30.0 pp better</span></td></tr>
+      <tr><th>Koalas</th>
+        <td class="num">90.0%</td><td><span class="meter"><span style="width:90%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +10.0 pp better</span></td></tr>
+      <tr><th>Raccoons</th>
+        <td class="num">66.7%</td><td><span class="meter"><span style="width:67%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +33.3 pp better</span></td></tr>
+      <tr><th>Red pandas</th>
+        <td class="num">55.6%</td><td><span class="meter"><span style="width:56%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +44.4 pp better</span></td></tr>
+      <tr><th>Wolves</th>
+        <td class="num">10.0%</td><td><span class="meter"><span style="width:10%"></span></span></td>
+        <td class="num">40.0%</td><td><span class="meter second"><span style="width:40%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +30.0 pp better</span></td></tr>
+    </table></div>
+    <h3>Dog-detection scores</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Score (dog = positive)</th><th class="num">First Pass</th><th class="num">Second Pass</th></tr>
+      <tr><th>Precision<br><span class="muted">When it says “dog”, how often it is right</span></th>
+        <td class="num">0.6940</td><td class="num">0.8158</td></tr>
+      <tr><th>Recall<br><span class="muted">Of all dog photos, how many it found</span></th>
+        <td class="num">0.9789</td><td class="num">0.9789</td></tr>
+      <tr><th>F1<br><span class="muted">Balance of precision and recall</span></th>
+        <td class="num">0.8122</td><td class="num">0.8900</td></tr>
+    </table></div>
+    <h3>Average time per image</h3>
+    <p><span class="badge" data-trend="flat">First Pass: 4.80 s</span> <span class="badge" data-trend="flat">RAG retrieval: 0.06 s</span> <span class="badge" data-trend="flat">Second Pass: 4.51 s</span> </p>
+    <details><summary>Run settings</summary><dl>
+<dt>Model repo</dt><dd><code>mlx-community/LFM2-VL-450M-4bit</code></dd>
+<dt>Decoding</dt><dd><code>temperature 0.0, seed 42</code></dd>
+<dt>Embedding model</dt><dd><code>sentence-transformers/all-MiniLM-L6-v2</code></dd>
+<dt>Retrieved documents</dt><dd><code>top 5, query = First Pass description</code></dd>
+<dt>Prompts digest</dt><dd><code>361f64a20b471254</code></dd>
+<dt>Knowledge digest</dt><dd><code>62e630fd097a3417</code></dd>
+<dt>Dataset version</dt><dd><code>535afeff43ba4934</code></dd>
+<dt>Run started</dt><dd><code>2026-11-03T10:39:28.888624+00:00</code></dd>
+<dt>Result file</dt><dd><code>results/lfm2-vl-450m/paired-lfm2-vl-450m-535afeff43ba4934.jsonl</code></dd>
+    </dl></details>
+  </section>
+  <section class="card">
+    <div class="section-title"><h2>Qwen3 VL 2B</h2>
+    <p><span class="badge" data-trend="up">▲ +10.2 pp better</span></p></div>
+    <p class="callout"><strong>Failed runs</strong> (not scored, never counted as "not a dog").
+      Failed at — First Pass: 4.
+      Images: <code>images/non_dog/bear/bear_003</code>, <code>images/non_dog/coyote/coyote_005</code>, <code>images/non_dog/dingo/dingo_009</code>, <code>images/non_dog/hyena/hyena_008</code></p>
+    <h3>What it answered</h3><div class="table-scroll"><table>
+  <tr><th></th><th class="num" colspan="3">First Pass said…</th><th class="num" colspan="3">Second Pass said…</th></tr>
+  <tr><th>Photo shows</th><th class="num">Domestic dog</th><th class="num">Not a domestic dog</th><th class="num">Uncertain</th><th class="num">Domestic dog</th><th class="num">Not a domestic dog</th><th class="num">Uncertain</th></tr>
+  <tr><th>Dog photos</th><td class="num">97</td><td class="num">3</td><td class="num">0</td><td class="num">99</td><td class="num">1</td><td class="num">0</td></tr>
+  <tr><th>Other animal photos</th><td class="num">3</td><td class="num">67</td><td class="num">26</td><td class="num">9</td><td class="num">85</td><td class="num">2</td></tr>
+</table></div>
+<p class="muted">Right answers: "Domestic dog" for dog photos, "Not a domestic dog" for every other animal.
+"Uncertain" counts as wrong.</p>
+
+    <h3>Correct answers by animal</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Animal</th><th class="num" colspan="2">First Pass correct</th>
+          <th class="num" colspan="2">Second Pass correct</th><th class="num">Change</th></tr>
+      <tr><th>Dogs</th>
+        <td class="num">97.0%</td><td><span class="meter"><span style="width:97%"></span></span></td>
+        <td class="num">99.0%</td><td><span class="meter second"><span style="width:99%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +2.0 pp better</span></td></tr>
+      <tr><th>Bears</th>
+        <td class="num">55.6%</td><td><span class="meter"><span style="width:56%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +44.4 pp better</span></td></tr>
+      <tr><th>Cats</th>
+        <td class="num">70.0%</td><td><span class="meter"><span style="width:70%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +30.0 pp better</span></td></tr>
+      <tr><th>Coyotes</th>
+        <td class="num">88.9%</td><td><span class="meter"><span style="width:89%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +11.1 pp better</span></td></tr>
+      <tr><th>Dingoes</th>
+        <td class="num">77.8%</td><td><span class="meter"><span style="width:78%"></span></span></td>
+        <td class="num">22.2%</td><td><span class="meter second"><span style="width:22%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="down">▼ -55.6 pp worse</span></td></tr>
+      <tr><th>Foxes</th>
+        <td class="num">60.0%</td><td><span class="meter"><span style="width:60%"></span></span></td>
+        <td class="num">90.0%</td><td><span class="meter second"><span style="width:90%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +30.0 pp better</span></td></tr>
+      <tr><th>Hyenas</th>
+        <td class="num">66.7%</td><td><span class="meter"><span style="width:67%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +33.3 pp better</span></td></tr>
+      <tr><th>Koalas</th>
+        <td class="num">80.0%</td><td><span class="meter"><span style="width:80%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +20.0 pp better</span></td></tr>
+      <tr><th>Raccoons</th>
+        <td class="num">90.0%</td><td><span class="meter"><span style="width:90%"></span></span></td>
+        <td class="num">90.0%</td><td><span class="meter second"><span style="width:90%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="flat">– No change</span></td></tr>
+      <tr><th>Red pandas</th>
+        <td class="num">20.0%</td><td><span class="meter"><span style="width:20%"></span></span></td>
+        <td class="num">100.0%</td><td><span class="meter second"><span style="width:100%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="up">▲ +80.0 pp better</span></td></tr>
+      <tr><th>Wolves</th>
+        <td class="num">90.0%</td><td><span class="meter"><span style="width:90%"></span></span></td>
+        <td class="num">80.0%</td><td><span class="meter second"><span style="width:80%"></span></span></td>
+        <td class="num"><span class="badge" data-trend="down">▼ -10.0 pp worse</span></td></tr>
+    </table></div>
+    <h3>Dog-detection scores</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Score (dog = positive)</th><th class="num">First Pass</th><th class="num">Second Pass</th></tr>
+      <tr><th>Precision<br><span class="muted">When it says “dog”, how often it is right</span></th>
+        <td class="num">0.9700</td><td class="num">0.9167</td></tr>
+      <tr><th>Recall<br><span class="muted">Of all dog photos, how many it found</span></th>
+        <td class="num">0.9700</td><td class="num">0.9900</td></tr>
+      <tr><th>F1<br><span class="muted">Balance of precision and recall</span></th>
+        <td class="num">0.9700</td><td class="num">0.9519</td></tr>
+    </table></div>
+    <h3>Average time per image</h3>
+    <p><span class="badge" data-trend="flat">First Pass: 9.41 s</span> <span class="badge" data-trend="flat">RAG retrieval: 0.06 s</span> <span class="badge" data-trend="flat">Second Pass: 8.57 s</span> </p>
+    <details><summary>Run settings</summary><dl>
+<dt>Model repo</dt><dd><code>mlx-community/Qwen3-VL-2B-Instruct-4bit</code></dd>
+<dt>Decoding</dt><dd><code>temperature 0.0, seed 42</code></dd>
+<dt>Embedding model</dt><dd><code>sentence-transformers/all-MiniLM-L6-v2</code></dd>
+<dt>Retrieved documents</dt><dd><code>top 5, query = First Pass description</code></dd>
+<dt>Prompts digest</dt><dd><code>361f64a20b471254</code></dd>
+<dt>Knowledge digest</dt><dd><code>62e630fd097a3417</code></dd>
+<dt>Dataset version</dt><dd><code>535afeff43ba4934</code></dd>
+<dt>Run started</dt><dd><code>2026-11-03T08:56:52.250293+00:00</code></dd>
+<dt>Result file</dt><dd><code>results/qwen3-vl-2b/paired-qwen3-vl-2b-535afeff43ba4934.jsonl</code></dd>
+    </dl></details>
+  </section>
+  <p class="muted">Limitation: this compares the whole second look (first answer + retrieved facts)
+  with the first look, so it does not show how much of a change comes from the retrieved facts alone.</p>
+</main>
+</body>
+</html>

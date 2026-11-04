@@ -1,0 +1,520 @@
+{
+  "schema_version": "paired",
+  "experiments": {
+    "lfm3-vl-2b": {
+      "images": 200,
+      "paired_scored": 200,
+      "failed": 0,
+      "failed_images": [],
+      "stage_failures": {},
+      "inference_time": {
+        "first_pass": {
+          "count": 200,
+          "mean_seconds": 6.0695
+        },
+        "retrieval": {
+          "count": 200,
+          "mean_seconds": 0.067
+        },
+        "second_pass": {
+          "count": 200,
+          "mean_seconds": 7.1091
+        }
+      },
+      "comparison": {
+        "paired_images": 200,
+        "first_pass": {
+          "count": 200,
+          "accuracy": 0.97,
+          "abstentions": 1,
+          "precision": 0.9703,
+          "recall": 0.98,
+          "f1": 0.9751,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                98,
+                2,
+                0
+              ],
+              [
+                3,
+                96,
+                1
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.9,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 1.0,
+            "dog": 0.98,
+            "fox": 0.9,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 0.8
+          }
+        },
+        "second_pass": {
+          "count": 200,
+          "accuracy": 0.975,
+          "abstentions": 1,
+          "precision": 0.98,
+          "recall": 0.98,
+          "f1": 0.98,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                98,
+                2,
+                0
+              ],
+              [
+                2,
+                97,
+                1
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.9,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 1.0,
+            "dog": 0.98,
+            "fox": 0.9,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 0.9
+          }
+        },
+        "accuracy_improvement_percentage_points": 0.5,
+        "transitions": {
+          "incorrect_to_correct": 1,
+          "correct_to_incorrect": 0,
+          "unchanged_correct": 194,
+          "unchanged_incorrect": 5
+        }
+      },
+      "dataset_version": "535afeff43ba4934",
+      "result_file": "results/lfm3-vl-2b/paired-lfm3-vl-2b-535afeff43ba4934.jsonl",
+      "metadata": {
+        "generated_at": "2026-11-03T11:11:09.647652+00:00",
+        "schema_version": "paired",
+        "vision_model": "lfm3-vl-2b",
+        "vision_repo": "LiquidAI/LFM3-VL-2B-MLX-4bit",
+        "vision_revision": "4146d7fa689833cfa7a06c474e748350b458f41e",
+        "vision_backend": "mlx-vlm",
+        "decoding": {
+          "temperature": 0.0,
+          "seed": 42,
+          "max_tokens_first_pass": 512,
+          "max_tokens_second_pass": 600,
+          "second_pass_thinking": false
+        },
+        "prompts_sha256": "361f64a20b471254",
+        "code_sha256": "39c8e6c520bfc41d",
+        "knowledge_sha256": "62e630fd097a3417",
+        "retrieval": {
+          "query_source": "first_pass.description",
+          "top_k": 5,
+          "chunk_max_chars": 1200,
+          "vector_store": "faiss(IndexFlatIP, cosine) + bm25, reciprocal rank fusion",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "embedding_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+        },
+        "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+        "dataset_version": "535afeff43ba4934",
+        "environment": {
+          "python": "3.14.5",
+          "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+          "packages": {
+            "mlx": "0.32.4",
+            "mlx-vlm": "0.7.11",
+            "llguidance": "1.9.1",
+            "transformers": "5.22.1",
+            "torch": "2.15.0",
+            "sentence-transformers": "6.2.0",
+            "faiss-cpu": "1.15.1",
+            "numpy": "2.5.4",
+            "pillow": "13.0.0",
+            "pydantic": "2.14.2"
+          }
+        }
+      }
+    },
+    "lfm2-vl-450m": {
+      "images": 200,
+      "paired_scored": 190,
+      "failed": 10,
+      "failed_images": [
+        "images/dog/dog_006",
+        "images/dog/dog_024",
+        "images/dog/dog_031",
+        "images/dog/dog_032",
+        "images/dog/dog_091",
+        "images/non_dog/bear/bear_004",
+        "images/non_dog/dingo/dingo_009",
+        "images/non_dog/fox/fox_003",
+        "images/non_dog/raccoon/raccoon_003",
+        "images/non_dog/red_panda/red_panda_003"
+      ],
+      "stage_failures": {
+        "first_pass": 10
+      },
+      "inference_time": {
+        "first_pass": {
+          "count": 190,
+          "mean_seconds": 4.8017
+        },
+        "retrieval": {
+          "count": 190,
+          "mean_seconds": 0.06
+        },
+        "second_pass": {
+          "count": 190,
+          "mean_seconds": 4.5092
+        }
+      },
+      "comparison": {
+        "paired_images": 190,
+        "first_pass": {
+          "count": 190,
+          "accuracy": 0.7737,
+          "abstentions": 0,
+          "precision": 0.694,
+          "recall": 0.9789,
+          "f1": 0.8122,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                93,
+                2,
+                0
+              ],
+              [
+                41,
+                54,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 1.0,
+            "cat": 1.0,
+            "coyote": 0.5,
+            "dingo": 0.0,
+            "dog": 0.9789,
+            "fox": 0.4444,
+            "hyena": 0.5,
+            "koala": 0.9,
+            "raccoon": 0.6667,
+            "red_panda": 0.5556,
+            "wolf": 0.1
+          }
+        },
+        "second_pass": {
+          "count": 190,
+          "accuracy": 0.8789,
+          "abstentions": 0,
+          "precision": 0.8158,
+          "recall": 0.9789,
+          "f1": 0.89,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                93,
+                2,
+                0
+              ],
+              [
+                21,
+                74,
+                0
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 1.0,
+            "cat": 1.0,
+            "coyote": 0.7,
+            "dingo": 0.0,
+            "dog": 0.9789,
+            "fox": 0.8889,
+            "hyena": 0.8,
+            "koala": 1.0,
+            "raccoon": 1.0,
+            "red_panda": 1.0,
+            "wolf": 0.4
+          }
+        },
+        "accuracy_improvement_percentage_points": 10.5263,
+        "transitions": {
+          "incorrect_to_correct": 20,
+          "correct_to_incorrect": 0,
+          "unchanged_correct": 147,
+          "unchanged_incorrect": 23
+        }
+      },
+      "dataset_version": "535afeff43ba4934",
+      "result_file": "results/lfm2-vl-450m/paired-lfm2-vl-450m-535afeff43ba4934.jsonl",
+      "metadata": {
+        "generated_at": "2026-11-03T10:39:28.888624+00:00",
+        "schema_version": "paired",
+        "vision_model": "lfm2-vl-450m",
+        "vision_repo": "mlx-community/LFM2-VL-450M-4bit",
+        "vision_revision": "e3577e940f4dc756477245f8b5e01b2acaaab784",
+        "vision_backend": "mlx-vlm",
+        "decoding": {
+          "temperature": 0.0,
+          "seed": 42,
+          "max_tokens_first_pass": 512,
+          "max_tokens_second_pass": 600,
+          "second_pass_thinking": false
+        },
+        "prompts_sha256": "361f64a20b471254",
+        "code_sha256": "39c8e6c520bfc41d",
+        "knowledge_sha256": "62e630fd097a3417",
+        "retrieval": {
+          "query_source": "first_pass.description",
+          "top_k": 5,
+          "chunk_max_chars": 1200,
+          "vector_store": "faiss(IndexFlatIP, cosine) + bm25, reciprocal rank fusion",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "embedding_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+        },
+        "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+        "dataset_version": "535afeff43ba4934",
+        "environment": {
+          "python": "3.14.5",
+          "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+          "packages": {
+            "mlx": "0.32.4",
+            "mlx-vlm": "0.7.11",
+            "llguidance": "1.9.1",
+            "transformers": "5.22.1",
+            "torch": "2.15.0",
+            "sentence-transformers": "6.2.0",
+            "faiss-cpu": "1.15.1",
+            "numpy": "2.5.4",
+            "pillow": "13.0.0",
+            "pydantic": "2.14.2"
+          }
+        }
+      }
+    },
+    "qwen3-vl-2b": {
+      "images": 200,
+      "paired_scored": 196,
+      "failed": 4,
+      "failed_images": [
+        "images/non_dog/bear/bear_003",
+        "images/non_dog/coyote/coyote_005",
+        "images/non_dog/dingo/dingo_009",
+        "images/non_dog/hyena/hyena_008"
+      ],
+      "stage_failures": {
+        "first_pass": 4
+      },
+      "inference_time": {
+        "first_pass": {
+          "count": 196,
+          "mean_seconds": 9.4135
+        },
+        "retrieval": {
+          "count": 196,
+          "mean_seconds": 0.0589
+        },
+        "second_pass": {
+          "count": 196,
+          "mean_seconds": 8.5728
+        }
+      },
+      "comparison": {
+        "paired_images": 196,
+        "first_pass": {
+          "count": 196,
+          "accuracy": 0.8367,
+          "abstentions": 26,
+          "precision": 0.97,
+          "recall": 0.97,
+          "f1": 0.97,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                97,
+                3,
+                0
+              ],
+              [
+                3,
+                67,
+                26
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 0.5556,
+            "cat": 0.7,
+            "coyote": 0.8889,
+            "dingo": 0.7778,
+            "dog": 0.97,
+            "fox": 0.6,
+            "hyena": 0.6667,
+            "koala": 0.8,
+            "raccoon": 0.9,
+            "red_panda": 0.2,
+            "wolf": 0.9
+          }
+        },
+        "second_pass": {
+          "count": 196,
+          "accuracy": 0.9388,
+          "abstentions": 2,
+          "precision": 0.9167,
+          "recall": 0.99,
+          "f1": 0.9519,
+          "confusion_matrix": {
+            "true_labels": [
+              true,
+              false
+            ],
+            "predicted_labels": [
+              true,
+              false,
+              null
+            ],
+            "matrix": [
+              [
+                99,
+                1,
+                0
+              ],
+              [
+                9,
+                85,
+                2
+              ]
+            ]
+          },
+          "per_species_accuracy": {
+            "bear": 1.0,
+            "cat": 1.0,
+            "coyote": 1.0,
+            "dingo": 0.2222,
+            "dog": 0.99,
+            "fox": 0.9,
+            "hyena": 1.0,
+            "koala": 1.0,
+            "raccoon": 0.9,
+            "red_panda": 1.0,
+            "wolf": 0.8
+          }
+        },
+        "accuracy_improvement_percentage_points": 10.2041,
+        "transitions": {
+          "incorrect_to_correct": 26,
+          "correct_to_incorrect": 6,
+          "unchanged_correct": 158,
+          "unchanged_incorrect": 6
+        }
+      },
+      "dataset_version": "535afeff43ba4934",
+      "result_file": "results/qwen3-vl-2b/paired-qwen3-vl-2b-535afeff43ba4934.jsonl",
+      "metadata": {
+        "generated_at": "2026-11-03T08:56:52.250293+00:00",
+        "schema_version": "paired",
+        "vision_model": "qwen3-vl-2b",
+        "vision_repo": "mlx-community/Qwen3-VL-2B-Instruct-4bit",
+        "vision_revision": "9c4f5209e57b31f4b9dfba735de3fb983739c9cc",
+        "vision_backend": "mlx-vlm",
+        "decoding": {
+          "temperature": 0.0,
+          "seed": 42,
+          "max_tokens_first_pass": 512,
+          "max_tokens_second_pass": 600,
+          "second_pass_thinking": false
+        },
+        "prompts_sha256": "361f64a20b471254",
+        "code_sha256": "39c8e6c520bfc41d",
+        "knowledge_sha256": "62e630fd097a3417",
+        "retrieval": {
+          "query_source": "first_pass.description",
+          "top_k": 5,
+          "chunk_max_chars": 1200,
+          "vector_store": "faiss(IndexFlatIP, cosine) + bm25, reciprocal rank fusion",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "embedding_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+        },
+        "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+        "dataset_version": "535afeff43ba4934",
+        "environment": {
+          "python": "3.14.5",
+          "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+          "packages": {
+            "mlx": "0.32.4",
+            "mlx-vlm": "0.7.11",
+            "llguidance": "1.9.1",
+            "transformers": "5.22.1",
+            "torch": "2.15.0",
+            "sentence-transformers": "6.2.0",
+            "faiss-cpu": "1.15.1",
+            "numpy": "2.5.4",
+            "pillow": "13.0.0",
+            "pydantic": "2.14.2"
+          }
+        }
+      }
+    }
+  }
+}
