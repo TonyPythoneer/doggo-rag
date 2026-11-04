@@ -20,29 +20,40 @@ both passes succeeded:
 | qwen3-vl-2b | 83.7% | 93.9% | +10.2 pp | 26 | 6 | 4 |
 | lfm3-vl-2b | 97.0% | 97.5% | +0.5 pp | 1 | 0 | 0 |
 
+The Second Pass is more accurate than the First Pass for lfm2 and qwen3, but not
+because of the retrieved knowledge. The no-notes control (`make control`,
+2026-11-04) reran every scored Second Pass on the same First Pass, with the notes
+replaced by the text an empty retrieval gives:
+
+| Model | First Pass | Second Pass, notes | Second Pass, no notes | Right only with notes | Right only without | McNemar p |
+|---|---:|---:|---:|---:|---:|---:|
+| lfm2-vl-450m | 77.4% | 87.9% | 88.4% | 3 | 4 | 1.0 |
+| qwen3-vl-2b | 83.7% | 93.9% | 95.9% | 1 | 5 | 0.22 |
+| lfm3-vl-2b | 97.0% | 97.5% | 97.5% | 0 | 0 | 1.0 |
+
 What these numbers support:
 
+- **Asking again helps; the knowledge does not.** Without the notes, the Second
+  Pass fixes as many First Pass errors (lfm2 21 fixed / 0 broken, qwen3 25 / 1,
+  both p < 0.001). The notes leave 183 of 190 lfm2 answers, 190 of 196 qwen3
+  answers and all 200 lfm3 answers as they are without them, and the few they
+  change do not favour the notes.
+- **The notes hurt qwen3 on dingoes.** qwen3 called 2 of 9 dingoes a dog in its
+  First Pass, 3 in the Second Pass without notes and 7 with them; the dog
+  document is always among the notes.
 - **lfm2-vl-450m** gains on both halves of the data: +12.5 pp on the tuning
   half (even-numbered images) and +8.5 pp on the held-out half (odd). All 20
-  fixes are look-alikes the First Pass called a dog; no answer was broken.
-  McNemar's exact test: p < 0.001.
-- **qwen3-vl-2b** (only checked, never used to choose a change) gains +7.1 /
-  +13.4 pp on the two halves (p < 0.001), but differently: 24 of its 26 fixes
-  are First Pass `null` answers that became "not a dog", and 5 of its 6 breaks
-  are dingoes it turned into "dog".
-- **For lfm2, the gain comes from the Second Pass prompt layout, not shown to
-  come from the knowledge** (no control was run for qwen3). With the First Pass
-  result before the retrieved notes, the
-  lfm2 Second Pass answered "not a dog" for 173 of 192 images (59.4%). Putting
-  the notes first and the First Pass answer right before the question fixed it.
-  A Second Pass without the notes did as well where it returned valid JSON
+  fixes are look-alikes the First Pass called a dog; no answer was broken. The
+  prompt layout matters: with the First Pass result before the notes, its
+  Second Pass answered "not a dog" for 173 of 192 images
   (`docs/reflections/2026-11-03-lfm2-second-pass.md`).
-- **lfm3-vl-2b** ties and breaks nothing: one wolf fixed by the wolf card, on
-  the tuning half (+1.0 pp; held-out half 0 pp, no answer changed). One image is
-  within noise (p = 1.0); its First Pass is wrong on only 6 of 200 images. The
-  earlier −0.5 pp came from the policy wording "a domestic dog only", which made
-  it call dogs beside people or cattle "not a dog", with or without the notes
-  (`docs/reflections/2026-11-03-lfm3-second-pass.md`).
+- **qwen3-vl-2b** (only checked, never used to choose a change) gains +7.1 /
+  +13.4 pp on the two halves; 24 of its 26 fixes are First Pass `null` answers
+  that became "not a dog".
+- **lfm3-vl-2b** ties: one wolf fixed, with or without the notes; its First
+  Pass is wrong on only 6 of 200 images. The earlier −0.5 pp came from the
+  policy wording "a domestic dog only", which made it call dogs beside people
+  or cattle "not a dog" (`docs/reflections/2026-11-03-lfm3-second-pass.md`).
 - **Failures.** Constrained decoding removed lfm3's 17 First Pass failures (keys
   dropped after the description). lfm2's 10 are descriptions that never end
   before the token limit, which a grammar cannot repair.
@@ -53,6 +64,8 @@ What these numbers support:
 Full report: `results/eval.html` (all three models). Failed runs are listed there,
 with the raw model text in the JSONL, and never scored as `false`. The per-image JSONL files are the raw results; `results/paired-summary.json`
 and `eval.html` are generated from them by `make eval` (rerun instead of editing).
+`results/control/` holds the control's per-image answers, raw outputs and
+`summary.json`, written by `make control`.
 
 ## How it works
 
@@ -91,6 +104,7 @@ make eval                     # 3 models x 200 images, verify, write report
 make eval FRESH=1 LIMIT=5     # quick smoke test
 make fast-eval                # all models, 100 non-dogs + 10 sampled dogs -> results/fast/eval.html
 make fast-eval MODEL=lfm3-vl-2b DOGS=20   # one model, 20 dogs (see Makefile header for all parameters)
+make control                  # the scored Second Passes again without the notes -> results/control/
 export DOGGO_API_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(32))')
 make web                      # web app at http://127.0.0.1:8888 (asks for the key)
 ```

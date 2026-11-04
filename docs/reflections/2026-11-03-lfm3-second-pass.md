@@ -88,6 +88,10 @@ The best chunk was chosen on 2026-11-02 because card text made qwen3 write
 The wolf card says "sometimes all white or all black" and "a zoo enclosure";
 the black wolf in its enclosure was turned to "not a dog".
 
+Update (2026-11-04): the no-notes control (`make control`) fixed wolf_006 as
+well, and gave the same answer as this run on all 200 images, so the fix came
+from the second look, not from the wolf card.
+
 ## Order of decisions
 
 1. Constrained decoding: chosen from the failure shape, before any accuracy was

@@ -1,0 +1,47 @@
+{
+  "lfm2-vl-450m": {
+    "scored": 190,
+    "control_failed": 0,
+    "first_pass_accuracy": 0.7737,
+    "rag_second_pass_accuracy": 0.8789,
+    "control_second_pass_accuracy": 0.8842,
+    "rag_right_control_wrong": 3,
+    "control_right_rag_wrong": 4,
+    "mcnemar_p_rag_vs_control": 1.0,
+    "control_vs_first_pass": {
+      "fixed": 21,
+      "broke": 0
+    },
+    "mcnemar_p_control_vs_first_pass": 1e-06
+  },
+  "lfm3-vl-2b": {
+    "scored": 200,
+    "control_failed": 0,
+    "first_pass_accuracy": 0.97,
+    "rag_second_pass_accuracy": 0.975,
+    "control_second_pass_accuracy": 0.975,
+    "rag_right_control_wrong": 0,
+    "control_right_rag_wrong": 0,
+    "mcnemar_p_rag_vs_control": 1.0,
+    "control_vs_first_pass": {
+      "fixed": 1,
+      "broke": 0
+    },
+    "mcnemar_p_control_vs_first_pass": 1.0
+  },
+  "qwen3-vl-2b": {
+    "scored": 196,
+    "control_failed": 0,
+    "first_pass_accuracy": 0.8367,
+    "rag_second_pass_accuracy": 0.9388,
+    "control_second_pass_accuracy": 0.9592,
+    "rag_right_control_wrong": 1,
+    "control_right_rag_wrong": 5,
+    "mcnemar_p_rag_vs_control": 0.21875,
+    "control_vs_first_pass": {
+      "fixed": 25,
+      "broke": 1
+    },
+    "mcnemar_p_control_vs_first_pass": 1e-06
+  }
+}

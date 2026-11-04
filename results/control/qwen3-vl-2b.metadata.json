@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-11-04T08:20:15.138112+00:00",
+  "schema_version": "paired",
+  "vision_model": "qwen3-vl-2b",
+  "vision_repo": "mlx-community/Qwen3-VL-2B-Instruct-4bit",
+  "vision_revision": "9c4f5209e57b31f4b9dfba735de3fb983739c9cc",
+  "vision_backend": "mlx-vlm",
+  "decoding": {
+    "temperature": 0.0,
+    "seed": 42,
+    "max_tokens_first_pass": 512,
+    "max_tokens_second_pass": 600,
+    "second_pass_thinking": false
+  },
+  "prompts_sha256": "361f64a20b471254",
+  "code_sha256": "39c8e6c520bfc41d",
+  "knowledge_sha256": "62e630fd097a3417",
+  "retrieval": {
+    "query_source": "first_pass.description",
+    "top_k": 5,
+    "chunk_max_chars": 1200,
+    "vector_store": "faiss(IndexFlatIP, cosine) + bm25, reciprocal rank fusion",
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "embedding_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+  },
+  "dataset_manifest": "doggo-dataset/metadata/manifest.csv",
+  "dataset_version": "535afeff43ba4934",
+  "environment": {
+    "python": "3.14.5",
+    "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "mlx": "0.32.4",
+      "mlx-vlm": "0.7.11",
+      "llguidance": "1.9.1",
+      "transformers": "5.22.1",
+      "torch": "2.15.0",
+      "sentence-transformers": "6.2.0",
+      "faiss-cpu": "1.15.1",
+      "numpy": "2.5.4",
+      "pillow": "13.0.0",
+      "pydantic": "2.14.2"
+    }
+  },
+  "condition": "second pass without retrieved notes"
+}
