@@ -1,0 +1,90 @@
+{
+  "dataset": "doggo-dataset",
+  "generated_at": "2026-10-30T07:38:15+00:00",
+  "total_images": 200,
+  "counts_by_species": {
+    "dog": 100,
+    "wolf": 10,
+    "fox": 10,
+    "coyote": 10,
+    "dingo": 10,
+    "cat": 10,
+    "koala": 10,
+    "red_panda": 10,
+    "raccoon": 10,
+    "bear": 10,
+    "hyena": 10
+  },
+  "label_counts": {
+    "dog": 100,
+    "non_dog": 100
+  },
+  "checks": [
+    {
+      "check": "exactly_200_images",
+      "passed": true,
+      "detail": "200 image files found (expected 200)"
+    },
+    {
+      "check": "dog_count_100",
+      "passed": true,
+      "detail": "100 dog images (expected 100)"
+    },
+    {
+      "check": "ten_per_non_dog_species",
+      "passed": true,
+      "detail": "wolf=10, fox=10, coyote=10, dingo=10, cat=10, koala=10, red_panda=10, raccoon=10, bear=10, hyena=10"
+    },
+    {
+      "check": "all_images_decode",
+      "passed": true,
+      "detail": "200 images decoded"
+    },
+    {
+      "check": "no_zero_byte_or_corrupt_files",
+      "passed": true,
+      "detail": "zero-byte: 0, corrupt: 0"
+    },
+    {
+      "check": "no_duplicate_files",
+      "passed": true,
+      "detail": "no exact SHA-256 duplicates"
+    },
+    {
+      "check": "no_near_duplicate_files",
+      "passed": true,
+      "detail": "no perceptual near-duplicates"
+    },
+    {
+      "check": "manifest_matches_images",
+      "passed": true,
+      "detail": "missing entries: none; orphan entries: none"
+    },
+    {
+      "check": "source_and_license_traceable",
+      "passed": true,
+      "detail": "200 entries verified"
+    },
+    {
+      "check": "no_unexpected_files_in_image_dirs",
+      "passed": true,
+      "detail": "only expected .jpg files"
+    },
+    {
+      "check": "dingo_labelled_non_dog",
+      "passed": true,
+      "detail": "10 dingo rows all labelled non_dog"
+    },
+    {
+      "check": "label_species_consistency",
+      "passed": true,
+      "detail": "labels match the binary definition"
+    },
+    {
+      "check": "jpeg_format_only",
+      "passed": true,
+      "detail": "formats found: ['JPEG']"
+    }
+  ],
+  "all_passed": true
+}
