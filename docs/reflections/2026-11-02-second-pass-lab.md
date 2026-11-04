@@ -17,8 +17,8 @@ retrieval and prompt changes, tested in a self-test loop (`scripts/rag-lab.py`).
 
 ## Starting point
 
-The lfm3-vl-2b run at `321ebb1` scored 96.4% in both passes and changed no
-answer. Its Second Pass returned the First Pass `is_dog` **and** confidence for
+The lfm3-vl-2b run before this work (vector retrieval only, no species cards)
+scored 96.4% in both passes and changed no answer. Its Second Pass returned the First Pass `is_dog` **and** confidence for
 all 196 scored images. For the 97 scored non-dog images, the image's own species
 was among the 5 retrieved documents 55 times.
 
