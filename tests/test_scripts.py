@@ -12,6 +12,7 @@ from app.config import load_config
 from app.evaluation import metadata, report, results
 from app.evaluation.verify import verify
 from app.vision.schemas import SecondPassResult
+from tests.conftest import FakeVisionModel
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -265,3 +266,33 @@ def test_rag_lab_cache_reuses_outputs_per_prompt_and_thinking(tmp_path, monkeypa
     lab.cache_generate(tmp_path / "cache.jsonl")  # a new run reads the cache from disk
     assert model.generate("img.jpg", "p", 10) == first
     assert calls == [("p", False), ("p", True), ("p", False)]
+
+
+def test_control_reruns_the_recorded_second_pass_without_the_notes(tmp_path, monkeypatch):
+    control = _load_script("control_no_notes", "scripts/control-no-notes.py")
+    cfg = load_config().for_model("lfm3-vl-2b")
+    cfg.results.dir = str(tmp_path)
+    results.result_path(cfg).parent.mkdir(parents=True)
+    results.metadata_path(cfg).write_text(json.dumps(metadata.experiment_metadata(cfg)))
+    record = {
+        "experiment_key": metadata.experiment_key(cfg),
+        "status": "ok",
+        "image_id": "images/non_dog/fox/fox_001",
+        "image_path": "images/non_dog/fox/fox_001.jpg",
+        "species": "fox",
+        "ground_truth_is_dog": False,
+        "first_pass": {"description": "Pointed ears; bushy tail.", "is_dog": True, "confidence": 0.8},
+        "second_pass": {"is_dog": True, "confidence": 0.7},
+    }
+    results.result_path(cfg).write_text(json.dumps(record) + "\n")
+    fake = FakeVisionModel(second={"is_dog": False, "confidence": 0.9})
+    monkeypatch.setattr(control, "get_vision_model", lambda model_id: fake)
+
+    (line,) = results.load_records(control.run_model(cfg))
+
+    (prompt,) = [call["prompt"] for call in fake.calls]
+    assert "(no relevant knowledge was retrieved)" in prompt and "Pointed ears" in prompt
+    summary = control.compare([line])
+    assert (summary["rag_second_pass_accuracy"], summary["control_second_pass_accuracy"]) == (0, 1)
+    assert summary["control_right_rag_wrong"] == 1
+    assert control.mcnemar(6, 0) == 2 / 64
