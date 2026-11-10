@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="2269" viewBox="0 0 1360 2269" font-family="Arial,sans-serif" role="img" aria-labelledby="title desc">
+<title id="title">DOGGO RAG Results and Decision</title>
+<desc id="desc">Figure 02. Accuracy of the First Pass, the Second Pass with retrieved notes and the Second Pass without notes for lfm2-vl-450m, qwen3-vl-2b and lfm3-vl-2b on 200 images; mean latency per stage; and the decision the evidence supports: lfm3-vl-2b First Pass only by default, lfm2-vl-450m with a no-notes Second Pass if memory is constrained, and no measured benefit from the RAG notes. Data: results/paired-summary.json and results/control/summary.json.</desc>
+<style>
+  svg { --page:#F5F7FB; --card:#FFFFFF; --border:#DEE6EE; --grid:#E6ECF2; --divider:#DBE2EA; --stem:#C9D4DF;
+        --title:#16283B; --text:#22374C; --body:#596C80; --muted:#66778B; --faint:#7F90A3;
+        --accent:#14A99B; --first:#8A9AAD; --notes:#8968C3; --nonotes:#0E9E8F; --second:#4D94C0;
+        --tint-teal:#E5F9F5; --tint-amber:#FFF4E0; --amber:#9A5B00; --amber-bar:#E0A030;
+        --teal:#0E8C80; --chip-teal:#DDF7F2; --blue:#2F76A6; --chip-blue:#E7F2FC; --purple:#6F4FB0; --chip-purple:#F0EAFA;
+        --shadow:#17243D; --shadow-o:.10; }
+  .page { fill:var(--page); }
+  .card { fill:var(--card); stroke:var(--border); stroke-width:1; }
+  .grid { stroke:var(--grid); stroke-width:1.5; }
+  .divider { stroke:var(--divider); stroke-width:2; }
+  .stem { stroke:var(--stem); stroke-width:4; stroke-linecap:round; }
+  .ring { fill:none; stroke:var(--notes); stroke-width:3.5; }
+  .dashed { fill:none; stroke:var(--stem); stroke-width:2; stroke-dasharray:7 6; }
+  .shadow { flood-color:var(--shadow); flood-opacity:var(--shadow-o); }
+  .accent { fill:var(--accent); } .f-accent { fill:var(--accent); }
+  .c-title { fill:var(--title); } .c-text { fill:var(--text); } .c-body { fill:var(--body); }
+  .c-muted { fill:var(--muted); } .c-faint { fill:var(--faint); }
+  .c-notes { fill:var(--notes); } .c-nonotes { fill:var(--nonotes); } .c-amber { fill:var(--amber); }
+  .f-first { fill:var(--first); } .f-nonotes { fill:var(--nonotes); } .f-retr { fill:var(--notes); } .f-second { fill:var(--second); }
+  .f-amber { fill:var(--amber-bar); }
+  .tint-teal { fill:var(--tint-teal); } .tint-amber { fill:var(--tint-amber); }
+  .c-teal { fill:var(--teal); } .f-teal { fill:var(--accent); } .chip-teal { fill:var(--chip-teal); }
+  .c-blue { fill:var(--blue); } .f-blue { fill:var(--second); } .chip-blue { fill:var(--chip-blue); }
+  .c-purple { fill:var(--purple); } .f-purple { fill:var(--notes); } .chip-purple { fill:var(--chip-purple); }
+  .f-muted { fill:var(--muted); }
+</style>
+<defs>
+  <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#172C3F"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow class="shadow" dx="0" dy="10" stdDeviation="18" flood-color="#17243D" flood-opacity=".10"/></filter>
+</defs>
+<rect width="1360" height="2269" class="page"/>
+<rect width="1360" height="278" fill="url(#hero)"/>
+<circle cx="1250" cy="-55" r="260" fill="none" stroke="#2dd4bf" stroke-opacity=".12" stroke-width="42"/>
+<circle cx="1280" cy="12" r="167" fill="none" stroke="#2dd4bf" stroke-opacity=".13" stroke-width="2"/>
+<text x="78" y="65" fill="#6EE7D5" font-size="20" font-weight="700" letter-spacing="3">FIGURE 02  /  RESULTS → DECISION</text>
+<text x="74" y="143" fill="#FFFFFF" font-size="70" font-weight="800">DOGGO RAG</text>
+<text x="78" y="189" fill="#CFD8E3" font-size="25">Does a second look with retrieved notes help?</text>
+<text x="78" y="221" fill="#CFD8E3" font-size="25">Accuracy, latency and the configuration the evidence supports.</text>
+<g font-size="17" font-weight="700">
+<rect x="975" y="188" width="150" height="42" rx="21" fill="#1F4549"/><text x="1050" y="215" text-anchor="middle" fill="#9DF4E7">200 IMAGES</text>
+<rect x="1135" y="188" width="140" height="42" rx="21" fill="#25445E"/><text x="1205" y="215" text-anchor="middle" fill="#C6DCFF">3 MODELS</text>
+</g>
+<text x="78" y="330" class="accent" font-size="20" font-weight="800" letter-spacing="2.2">01</text>
+<text x="126" y="330" class="c-title" font-size="34" font-weight="800">Accuracy: First Pass vs. Second Pass</text>
+<text x="78" y="364" class="c-muted" font-size="20">Images where both passes succeeded (failed outputs are not scored). 100 dogs, 100 look-alikes.</text>
+<rect x="78" y="386" width="1204" height="374" rx="19" class="card" filter="url(#shadow)"/>
+<circle cx="368" cy="430" r="7" class="f-first"/>
+<text x="384" y="436" class="c-text" font-size="16">First Pass</text>
+<circle cx="490" cy="430" r="8" class="ring"/>
+<text x="506" y="436" class="c-text" font-size="16">Second Pass + notes</text>
+<circle cx="690" cy="430" r="6" class="f-nonotes"/>
+<text x="704" y="436" class="c-text" font-size="16">Second Pass, no notes</text>
+<text x="1040" y="436" class="c-muted" font-size="13" font-weight="700" text-anchor="end" letter-spacing="1.2">FIRST PASS</text>
+<text x="1150" y="436" class="c-muted" font-size="13" font-weight="700" text-anchor="end" letter-spacing="1.2">+ NOTES</text>
+<text x="1250" y="436" class="c-muted" font-size="13" font-weight="700" text-anchor="end" letter-spacing="1.2">NO NOTES</text>
+<line x1="360" y1="462" x2="360" y2="668" class="grid"/>
+<text x="360" y="692" class="c-muted" font-size="15" text-anchor="middle">75%</text>
+<line x1="468" y1="462" x2="468" y2="668" class="grid"/>
+<text x="468" y="692" class="c-muted" font-size="15" text-anchor="middle">80%</text>
+<line x1="576" y1="462" x2="576" y2="668" class="grid"/>
+<text x="576" y="692" class="c-muted" font-size="15" text-anchor="middle">85%</text>
+<line x1="684" y1="462" x2="684" y2="668" class="grid"/>
+<text x="684" y="692" class="c-muted" font-size="15" text-anchor="middle">90%</text>
+<line x1="792" y1="462" x2="792" y2="668" class="grid"/>
+<text x="792" y="692" class="c-muted" font-size="15" text-anchor="middle">95%</text>
+<line x1="900" y1="462" x2="900" y2="668" class="grid"/>
+<text x="900" y="692" class="c-muted" font-size="15" text-anchor="middle">100%</text>
+<text x="110" y="500" class="c-title" font-size="20" font-weight="700">lfm2-vl-450m</text>
+<text x="110" y="522" class="c-muted" font-size="15">190 scored · 10 failed</text>
+<line x1="411.84" y1="502" x2="649.44" y2="502" class="stem"/>
+<circle cx="411.84" cy="502" r="7" class="f-first"/>
+<circle cx="638.64" cy="502" r="10" class="ring"/>
+<circle cx="649.44" cy="502" r="5.5" class="f-nonotes"/>
+<text x="1040" y="500" class="c-body" font-size="21" font-weight="700" text-anchor="end">77.4%</text>
+<text x="1150" y="500" class="c-notes" font-size="21" font-weight="700" text-anchor="end">87.9%</text>
+<text x="1250" y="500" class="c-nonotes" font-size="21" font-weight="700" text-anchor="end">88.4%</text>
+<text x="1150" y="522" class="c-notes" font-size="14" text-anchor="end">(+10.53%)</text>
+<text x="1250" y="522" class="c-nonotes" font-size="14" text-anchor="end">(+11.05%)</text>
+<text x="110" y="566" class="c-title" font-size="20" font-weight="700">qwen3-vl-2b</text>
+<text x="110" y="588" class="c-muted" font-size="15">196 scored · 4 failed</text>
+<line x1="547.92" y1="568" x2="811.44" y2="568" class="stem"/>
+<circle cx="547.92" cy="568" r="7" class="f-first"/>
+<circle cx="768.24" cy="568" r="10" class="ring"/>
+<circle cx="811.44" cy="568" r="5.5" class="f-nonotes"/>
+<text x="1040" y="566" class="c-body" font-size="21" font-weight="700" text-anchor="end">83.7%</text>
+<text x="1150" y="566" class="c-notes" font-size="21" font-weight="700" text-anchor="end">93.9%</text>
+<text x="1250" y="566" class="c-nonotes" font-size="21" font-weight="700" text-anchor="end">95.9%</text>
+<text x="1150" y="588" class="c-notes" font-size="14" text-anchor="end">(+10.20%)</text>
+<text x="1250" y="588" class="c-nonotes" font-size="14" text-anchor="end">(+12.24%)</text>
+<text x="110" y="632" class="c-title" font-size="20" font-weight="700">lfm3-vl-2b</text>
+<text x="110" y="654" class="c-muted" font-size="15">200 scored · 0 failed</text>
+<line x1="835.2" y1="634" x2="846" y2="634" class="stem"/>
+<circle cx="835.2" cy="634" r="7" class="f-first"/>
+<circle cx="846" cy="634" r="10" class="ring"/>
+<circle cx="846" cy="634" r="5.5" class="f-nonotes"/>
+<text x="846" y="616" class="c-muted" font-size="13" text-anchor="middle">both 97.5%</text>
+<text x="1040" y="632" class="c-body" font-size="21" font-weight="700" text-anchor="end">97.0%</text>
+<text x="1150" y="632" class="c-notes" font-size="21" font-weight="700" text-anchor="end">97.5%</text>
+<text x="1250" y="632" class="c-nonotes" font-size="21" font-weight="700" text-anchor="end">97.5%</text>
+<text x="1150" y="654" class="c-notes" font-size="14" text-anchor="end">(+0.50%)</text>
+<text x="1250" y="654" class="c-nonotes" font-size="14" text-anchor="end">(+0.50%)</text>
+<line x1="78" y1="796" x2="1282" y2="796" class="divider"/>
+<text x="78" y="848" class="accent" font-size="20" font-weight="800" letter-spacing="2.2">02</text>
+<text x="126" y="848" class="c-title" font-size="34" font-weight="800">Latency: what each pass costs</text>
+<text x="78" y="882" class="c-muted" font-size="20">Mean seconds per image, model loading excluded. Full pipeline = Second Pass with notes.</text>
+<rect x="78" y="904" width="1204" height="384" rx="19" class="card" filter="url(#shadow)"/>
+<rect x="420" y="940" width="18" height="16" rx="3" class="f-first"/>
+<text x="446" y="954" class="c-text" font-size="16">First Pass</text>
+<rect x="548" y="940" width="18" height="16" rx="3" class="f-retr"/>
+<text x="574" y="954" class="c-text" font-size="16">Retrieval (0.06–0.07 s, drawn 4 px wide)</text>
+<rect x="896" y="940" width="18" height="16" rx="3" class="f-second"/>
+<text x="922" y="954" class="c-text" font-size="16">Second Pass</text>
+<text x="1135" y="954" class="c-muted" font-size="13" font-weight="700" text-anchor="end" letter-spacing="1.2">TOTAL</text>
+<text x="1250" y="954" class="c-muted" font-size="13" font-weight="700" text-anchor="end" letter-spacing="1.2">ACCURACY</text>
+<text x="110" y="1025" class="c-title" font-size="19" font-weight="700">lfm2-vl-450m</text>
+<text x="260" y="1006" class="c-body" font-size="16">First Pass only</text>
+<line x1="420" y1="976" x2="420" y2="1244" class="grid"/>
+<line x1="575" y1="976" x2="575" y2="1244" class="grid"/>
+<line x1="730" y1="976" x2="730" y2="1244" class="grid"/>
+<line x1="885" y1="976" x2="885" y2="1244" class="grid"/>
+<line x1="1040" y1="976" x2="1040" y2="1244" class="grid"/>
+<rect x="420" y="989" width="148.8" height="22" rx="3" class="f-first"/>
+<text x="1135" y="1007" class="c-title" font-size="19" font-weight="700" text-anchor="end">4.80 s</text>
+<text x="1250" y="1007" class="c-body" font-size="19" font-weight="700" text-anchor="end">77.4%</text>
+<text x="260" y="1044" class="c-body" font-size="16">Full pipeline</text>
+<rect x="420" y="1027" width="148.8" height="22" rx="3" class="f-first"/>
+<rect x="569.8" y="1027" width="4" height="22" class="f-retr"/>
+<rect x="574.8" y="1027" width="139.81" height="22" rx="3" class="f-second"/>
+<text x="1135" y="1045" class="c-title" font-size="19" font-weight="700" text-anchor="end">9.37 s</text>
+<text x="1250" y="1045" class="c-body" font-size="19" font-weight="700" text-anchor="end">87.9%</text>
+<text x="110" y="1115" class="c-title" font-size="19" font-weight="700">lfm3-vl-2b</text>
+<text x="260" y="1096" class="c-body" font-size="16">First Pass only</text>
+<rect x="420" y="1079" width="188.17" height="22" rx="3" class="f-first"/>
+<text x="1135" y="1097" class="c-title" font-size="19" font-weight="700" text-anchor="end">6.07 s</text>
+<text x="1250" y="1097" class="c-body" font-size="19" font-weight="700" text-anchor="end">97.0%</text>
+<text x="260" y="1134" class="c-body" font-size="16">Full pipeline</text>
+<rect x="420" y="1117" width="188.17" height="22" rx="3" class="f-first"/>
+<rect x="609.17" y="1117" width="4" height="22" class="f-retr"/>
+<rect x="614.17" y="1117" width="220.41" height="22" rx="3" class="f-second"/>
+<text x="1135" y="1135" class="c-title" font-size="19" font-weight="700" text-anchor="end">13.25 s</text>
+<text x="1250" y="1135" class="c-body" font-size="19" font-weight="700" text-anchor="end">97.5%</text>
+<text x="110" y="1205" class="c-title" font-size="19" font-weight="700">qwen3-vl-2b</text>
+<text x="260" y="1186" class="c-body" font-size="16">First Pass only</text>
+<rect x="420" y="1169" width="291.71" height="22" rx="3" class="f-first"/>
+<text x="1135" y="1187" class="c-title" font-size="19" font-weight="700" text-anchor="end">9.41 s</text>
+<text x="1250" y="1187" class="c-body" font-size="19" font-weight="700" text-anchor="end">83.7%</text>
+<text x="260" y="1224" class="c-body" font-size="16">Full pipeline</text>
+<rect x="420" y="1207" width="291.71" height="22" rx="3" class="f-first"/>
+<rect x="712.71" y="1207" width="4" height="22" class="f-retr"/>
+<rect x="717.71" y="1207" width="265.67" height="22" rx="3" class="f-second"/>
+<text x="1135" y="1225" class="c-title" font-size="19" font-weight="700" text-anchor="end">18.05 s</text>
+<text x="1250" y="1225" class="c-body" font-size="19" font-weight="700" text-anchor="end">93.9%</text>
+<text x="420" y="1268" class="c-muted" font-size="15" text-anchor="middle">0 s</text>
+<text x="575" y="1268" class="c-muted" font-size="15" text-anchor="middle">5 s</text>
+<text x="730" y="1268" class="c-muted" font-size="15" text-anchor="middle">10 s</text>
+<text x="885" y="1268" class="c-muted" font-size="15" text-anchor="middle">15 s</text>
+<text x="1040" y="1268" class="c-muted" font-size="15" text-anchor="middle">20 s</text>
+<line x1="78" y1="1346" x2="1282" y2="1346" class="divider"/>
+<text x="78" y="1396" class="accent" font-size="20" font-weight="800" letter-spacing="2.2">03</text>
+<text x="126" y="1396" class="c-title" font-size="34" font-weight="800">Decision: what the evidence supports</text>
+<text x="78" y="1430" class="c-muted" font-size="20">For this task and these 200 images. Model sizes are the 4-bit MLX weight files.</text>
+<rect x="78" y="1452" width="1204" height="140" rx="19" class="card" filter="url(#shadow)"/>
+<rect x="78" y="1476" width="6" height="92" rx="3" class="f-teal"/>
+<rect x="104" y="1476" width="108" height="28" rx="14" class="chip-teal"/>
+<text x="158" y="1495" class="c-teal" font-size="13" font-weight="800" text-anchor="middle" letter-spacing="1.4">SIMPLEST</text>
+<text x="104" y="1538" class="c-title" font-size="23" font-weight="800">lfm3-vl-2b</text>
+<text x="104" y="1562" class="c-muted" font-size="16" font-weight="700">First Pass only</text>
+<line x1="352" y1="1476" x2="352" y2="1568" class="grid"/>
+<line x1="746" y1="1476" x2="746" y2="1568" class="grid"/>
+<text x="374" y="1533" class="c-teal" font-size="30" font-weight="800">97.0% accuracy</text>
+<circle cx="774" cy="1509" r="3" class="f-muted"/><text x="786" y="1514" class="c-body" font-size="16">First Pass wrong on only <tspan font-weight="800" class="c-title">6 of 200</tspan> images.</text>
+<circle cx="774" cy="1533" r="3" class="f-muted"/><text x="786" y="1538" class="c-body" font-size="16"><tspan font-weight="800" class="c-title">Faster and more accurate</tspan> than every full pipeline.</text>
+<rect x="78" y="1610" width="1204" height="224" rx="19" class="card" filter="url(#shadow)"/>
+<rect x="78" y="1634" width="6" height="176" rx="3" class="f-blue"/>
+<rect x="104" y="1676" width="211.6" height="28" rx="14" class="chip-blue"/>
+<text x="209.8" y="1695" class="c-blue" font-size="13" font-weight="800" text-anchor="middle" letter-spacing="1.4">MEMORY-CONSTRAINED</text>
+<text x="104" y="1738" class="c-title" font-size="23" font-weight="800">lfm2-vl-450m</text>
+<text x="104" y="1762" class="c-muted" font-size="16" font-weight="700">+ Second Pass without RAG</text>
+<line x1="352" y1="1634" x2="352" y2="1810" class="grid"/>
+<line x1="746" y1="1634" x2="746" y2="1810" class="grid"/>
+<text x="374" y="1733" class="c-blue" font-size="30" font-weight="800">77.4% → 88.4%</text>
+<text x="768" y="1648" class="c-muted" font-size="13" font-weight="800" letter-spacing="1.4">MODEL WEIGHTS (4-BIT MLX)</text>
+<circle cx="774" cy="1669" r="3" class="f-blue"/><text x="786" y="1674" class="c-blue" font-size="16" font-weight="800">lfm2-vl-450m</text><text x="990" y="1674" class="c-blue" font-size="16" font-weight="800" text-anchor="end">0.38 GB</text>
+<circle cx="774" cy="1693" r="3" class="f-muted"/><text x="786" y="1698" class="c-body" font-size="16">lfm3-vl-2b</text><text x="990" y="1698" class="c-body" font-size="16" text-anchor="end">1.59 GB</text>
+<circle cx="774" cy="1717" r="3" class="f-muted"/><text x="786" y="1722" class="c-body" font-size="16">qwen3-vl-2b</text><text x="990" y="1722" class="c-body" font-size="16" text-anchor="end">1.78 GB</text>
+<line x1="768" y1="1736" x2="1258" y2="1736" class="grid"/>
+<circle cx="774" cy="1753" r="3" class="f-muted"/><text x="786" y="1758" class="c-body" font-size="16">A Second Pass adds <tspan font-weight="800" class="c-title">+11.05%</tspan> (21 fixed, 0 broken).</text>
+<circle cx="774" cy="1777" r="3" class="f-muted"/><text x="786" y="1782" class="c-body" font-size="16">Closes over half the gap to lfm3: <tspan font-weight="800" class="c-title">88.4%</tspan> vs. 97.0%.</text>
+<circle cx="774" cy="1801" r="3" class="f-muted"/><text x="786" y="1806" class="c-body" font-size="16"><tspan font-weight="800" class="c-title">About 4× smaller than lfm3</tspan>: 0.38 GB vs. 1.59 GB.</text>
+<rect x="78" y="1852" width="1204" height="140" rx="19" class="card" filter="url(#shadow)"/>
+<rect x="78" y="1876" width="6" height="92" rx="3" class="f-purple"/>
+<rect x="104" y="1876" width="64" height="28" rx="14" class="chip-purple"/>
+<text x="136" y="1895" class="c-purple" font-size="13" font-weight="800" text-anchor="middle" letter-spacing="1.4">RAG</text>
+<text x="104" y="1938" class="c-title" font-size="23" font-weight="800">No measured benefit</text>
+<text x="104" y="1962" class="c-muted" font-size="16" font-weight="700">vs. Second Pass without RAG</text>
+<line x1="352" y1="1876" x2="352" y2="1968" class="grid"/>
+<line x1="746" y1="1876" x2="746" y2="1968" class="grid"/>
+<text x="374" y="1933" class="c-purple" font-size="30" font-weight="800">0 of 3<tspan font-size="16" font-weight="400" class="c-body"> models gain from RAG</tspan></text>
+<circle cx="774" cy="1897" r="3" class="f-muted"/><text x="786" y="1902" class="c-body" font-size="16">qwen3 dingo accuracy: <tspan font-weight="800" class="c-title">22%</tspan> with RAG, <tspan font-weight="800" class="c-title">67%</tspan> without.</text>
+<circle cx="774" cy="1921" r="3" class="f-muted"/><text x="786" y="1926" class="c-body" font-size="16"><tspan font-weight="800" class="c-title">Keep the no-RAG control</tspan> in every evaluation.</text>
+<circle cx="774" cy="1945" r="3" class="f-muted"/><text x="786" y="1950" class="c-body" font-size="16">Retrieval <tspan font-weight="800" class="c-title">must beat it</tspan> before it earns a place.</text>
+<rect x="78" y="2010" width="1204" height="140" rx="19" class="card" filter="url(#shadow)"/>
+<rect x="78" y="2034" width="6" height="92" rx="3" class="f-amber"/>
+<rect x="104" y="2034" width="118" height="28" rx="14" class="tint-amber"/>
+<text x="163" y="2053" class="c-amber" font-size="13" font-weight="800" text-anchor="middle" letter-spacing="1.4">HARD CASE</text>
+<text x="104" y="2096" class="c-title" font-size="23" font-weight="800">Dingo</text>
+<text x="104" y="2120" class="c-muted" font-size="16" font-weight="700">“not a dog” by project policy</text>
+<line x1="352" y1="2034" x2="352" y2="2126" class="grid"/>
+<line x1="746" y1="2034" x2="746" y2="2126" class="grid"/>
+<text x="374" y="2082" class="c-amber" font-size="30" font-weight="800">67% → 22%</text>
+<text x="374" y="2108" class="c-body" font-size="16">qwen3 dingo accuracy, without → with RAG</text>
+<circle cx="774" cy="2055" r="3" class="f-muted"/><text x="786" y="2060" class="c-body" font-size="16"><tspan font-weight="800" class="c-title">lfm3</tspan>: <tspan font-weight="800" class="c-title">100%</tspan> (10/10) in all three conditions.</text>
+<circle cx="774" cy="2079" r="3" class="f-muted"/><text x="786" y="2084" class="c-body" font-size="16"><tspan font-weight="800" class="c-title">qwen3</tspan>: 78% First Pass, <tspan font-weight="800" class="c-title">67%</tspan> without RAG, <tspan font-weight="800" class="c-title">22%</tspan> with RAG.</text>
+<circle cx="774" cy="2103" r="3" class="f-muted"/><text x="786" y="2108" class="c-body" font-size="16"><tspan font-weight="800" class="c-title">lfm2</tspan>: <tspan font-weight="800" class="c-title">0%</tspan> (0/9) in all three conditions.</text>
+<text x="78" y="2185" class="c-faint" font-size="15">Data: results/paired-summary.json, results/control/summary.json  ·  Apple Silicon, mlx-vlm 0.7.11</text>
+<rect x="0" y="2209" width="1360" height="60" fill="#15283A"/>
+<text x="78" y="2247" fill="#D2E5EE" font-size="17" font-weight="700">lfm2-vl-450m  •  qwen3-vl-2b  •  lfm3-vl-2b  •  MLX-VLM</text>
+<text x="1282" y="2247" text-anchor="end" fill="#A5BAC9" font-size="16">Figure 02 of 02  /  Results and decision</text>
+</svg>
